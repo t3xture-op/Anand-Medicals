@@ -1,81 +1,225 @@
-nav{
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    border-bottom: 2px solid #18181b;
-    box-shadow: 2px 1px 5px grey;
-    z-index: 10;
-    position: fixed;
-    width: 100%;
-    height: 5em;
-    background-color: var(--bgcolor)
+.navbar {
+  display: flex; /* Use Flexbox for layout */
+  flex-wrap: nowrap; /* Allow wrapping for responsiveness */
+  flex-shrink: 1;
+  justify-content: space-between; /* Space out elements evenly */
+  align-items: center; /* Vertically align items */
+  padding: 1em 2em;
+  border-bottom: solid 2px;
+  height: auto; /* Allow height to adjust dynamically */
+  background-color: #fff; /* Optional: Ensure a consistent background */
+  z-index: 10;
+}
+.box-1{
+  margin-right: auto;
+  
 }
 
-ul{
-    display: flex;
-    margin-top: 2em;
-    margin-right: 4em;
+.head-anand {
+  flex: 3; /* Take up equal space */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
-li{
-    margin-left: 30px;
-    list-style: none;
-    font-size: 18px;
-    
+.head-link {
+  flex: 2; /* Make the search container larger */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-h1{
-    margin-top:  1em;
-    margin-left:  3em;
-    color: var(--fcolor);
- 
-}
-input{
-    margin-top: 1.9em;
-    margin-left:11em;
-    padding-left: 12em;
-    background-color: white;
-    width:30em;
-    height: 2.5em;
-    border-radius: 20px;
-    outline:none;
-    box-shadow: 1px 2px 3px grey;
-}
-a{
-    text-decoration: none;
-    color: var(--fcolor);
+.head-list {
+  flex: 1; /* Take up equal space */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
+ul {
+  display: flex; /* Use Flexbox for the list */
+  padding: 0;
+  margin: 0;
+  list-style: none; /* Remove bullet points */
+}
 
+ul li {
+  margin-left: 1em; /* Add spacing between list items */
+  font-size: larger;
+}
 
-.search {
-    position: absolute;
-    top: 2.3em;
-    left: 42em;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #aaa;
-    background-color: transparent;
+ul li a {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+
+h1 a {
+  text-decoration: none;
+  font-size: 1.5em;
+  color: black;
+}
+.search-container {
+  position: relative;
+  width: 26em;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 40px;
+  font-size: 16px;
+  border: 1px solid #000;
+  border-radius: 50px;
+  outline: none;
+  background-color: #eeeeee;
+  color: rgb(12, 0, 0);
+}
+
+.search-input:focus {
+  border-color: #0078d7;
+  box-shadow: 0 0 5px #0078d7;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+.clear-icon {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: #585454;
+  cursor: pointer;
+}
+
+.clear-icon:hover {
+  color: #000000;
+}
+
+.cart-item {
+  position: relative; /* Set parent position for absolute child positioning */
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px; /* Move the badge upwards */
+  right: -10px; /* Adjust horizontally */
+  background-color: #6170F9; /* Badge background color */
+  color: white; /* Badge text color */
+  font-size: 12px;
+  border-radius: 50%; /* Makes it circular */
+  padding: 2px 6px; /* Inner padding */
+  min-width: 18px; /* Ensures it stays circular for single-digit numbers */
+  text-align: center;
+}
+.menu-icon {
+  display: none; /* Hidden by default */
+  font-size: 24px;
+  cursor: pointer;
+}
+.head-list.show {
+  display: flex;
+}
+
+.head-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 1em;
+}
+.log{
+  border: none;
+  font-size: medium;
+  font-weight: bolder;
+}
+
+/* Show menu icon and hide list on smaller screens */
+@media screen and (max-width: 1404px) {
+  .menu-icon {
+    display: block; /* Show menu icon */
+  }
+ h1 a{
+  font-size: 1.3em;
+ }
+  .head-list {
+    display: none; /* Hide the list by default */
+    flex-direction: column; /* Stack items vertically */
+    position: absolute; /* Position relative to navbar */
+    top: 100%; /* Place below the navbar */
+    right: 0;
+    background: white; /* Background color */
+    padding: 1em;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for dropdown effect */
+    z-index: 200; /* Ensure it is above other elements */
   }
 
-  .user{
-    color: var(--fcolor);
+  .head-list ul {
+    flex-direction: column; /* Stack list items vertically */
+    gap: 0.5em; /* Space between items */
   }
-  .setToggle {
-    display: block;
-    position: absolute;
-    top: 70px; /* Adjust to position below the user icon */
-    right: 20px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    height: 4em;
-    width: 4em;
+}
+
+
+/* Media Queries for Responsiveness */
+
+/* For tablet devices (max width: 768px) */
+@media screen and (max-width: 1120px) {
+  .navbar {
+    flex-direction: row; /* Stack items vertically */
+    align-items: center;
+    height: auto; /* Allow height to adjust */
+    padding: .9em; /* Reduce padding */
+  }
+  h1 a{
+    font-size: 1.3em;
+  }
+  .menu-icon{
+    padding-bottom: 1em;
   }
 
-  button{
-    background-color: transparent;
-    margin: 8px;
-    border: none;
+  .head-anand, .head-link, .head-list {
+    flex: 1; /* Each section gets full width */
+    margin-bottom: 1em;
+    text-align: center; /* Center text for smaller screens */
   }
+
+  .search-container {
+    width: 75%; /* Reduce search bar width */
+  }
+
+  ul {
+    flex-direction: column; /* Stack list items vertically */
+    align-items: center;
+  }
+
+  ul li {
+    margin: 0.5em 0; /* Add spacing between vertical list items */
+  }
+}
+
+/* For mobile devices (max width: 480px) */
+@media screen and (max-width: 612px) {
+  .search-container {
+    width: 75%; /* Full-width search bar */
+    height: 75%;
+  }
+
+  h1 a {
+    font-size: .8em; /* Smaller font size for title */
+  }
+
+  ul li {
+    font-size: 0.9em; /* Reduce font size for list items */
+  }
+
+  .cart-badge {
+    top: -5px; /* Adjust badge position for smaller screens */
+    right: -8px;
+  }
+}

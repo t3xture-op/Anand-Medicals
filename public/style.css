@@ -4,6 +4,9 @@
     box-sizing: border-box;
     --bgcolor: #18181f;
     --fcolor:white;
-    background-color: #18181f;
     scroll-behavior: smooth;
+    --font: "Poppins", sans-serif
+    
 }
+
+
