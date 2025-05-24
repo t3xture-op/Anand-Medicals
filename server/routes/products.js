@@ -1,4 +1,5 @@
 import express from 'express';
+import { upload } from '../middlewares/cloudinary.js'; 
 import { getAllProducts,getProductById,createProduct,updateProduct,deleteProduct } from '../controllers/productController.js';
 
 
@@ -13,11 +14,11 @@ productRouter.get('/:id',getProductById)
 
 
 // Create new product (admin only)
-productRouter.post('/',createProduct)
+productRouter.post('/', upload.single('image'), createProduct);
 
 
 // Update product (admin only)
-productRouter.put('/:id',updateProduct)
+productRouter.put('/:id', upload.single('image'), updateProduct);
 
 // Delete product (admin only)
 productRouter.delete('/:id',deleteProduct)

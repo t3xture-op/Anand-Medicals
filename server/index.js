@@ -4,10 +4,11 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import userRoutes from './routes/user.js';
+import categoryRoutes from './routes/category.js'
+import cartRoutes from './routes/cart.js'
 import cookieParser from 'cookie-parser';
 
 dotenv.config();
@@ -26,10 +27,11 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch((error) => console.error('MongoDB connection error:', error));
 
 // Routes
-app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/category',categoryRoutes);
+app.use('/api/cart',cartRoutes)
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

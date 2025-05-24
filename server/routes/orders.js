@@ -14,6 +14,7 @@ orderRouter.post('/',createOrder)
 
 // Update order status (admin only)
 orderRouter.patch('/:id/status',updateOrder)
+
 // Cancel order
 orderRouter.patch('/:id/cancel',cancelOrder)
 

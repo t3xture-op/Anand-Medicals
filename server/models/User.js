@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { type } from 'os';
+import Cart from './Cart.js';
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
+  },
+  shopping_cart:{
+    type:mongoose.Schema.ObjectId,
+    ref:'Cart'
   },
   createdAt: {
     type: Date,

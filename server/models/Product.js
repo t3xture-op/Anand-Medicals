@@ -12,24 +12,24 @@ const productSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true
+    //required: true
   },
   category: {
     type: String,
-    required: true
+    //required: true
   },
   image: {
-    type: String,
-    required: true
+    url: String,
+    public_id: String,
   },
   stock: {
     type: Number,
-    required: true,
+    //required: true,
     min: 0
   },
   manufacturer: {
     type: String,
-    required: true
+    //required: true
   },
   createdAt: {
     type: Date,
