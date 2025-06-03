@@ -1,14 +1,44 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState,useContext } from 'react';
+import { Link,useNavigate  } from 'react-router-dom';
+import { AuthContext } from '../authContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const { setUser, setIsLoggedIn } = useContext(AuthContext);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle login logic here
-  };
+  
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch('http://localhost:5000/api/user/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      alert(data.message || 'Login failed');
+      return;
+    }
+
+    // Store tokens and user
+    localStorage.setItem("accessToken", data?.data?.accessToken);
+    localStorage.setItem("refreshToken", data?.data?.refreshToken);
+    localStorage.setItem("user", JSON.stringify(data?.data?.user)); 
+
+    setUser(data?.data?.user); 
+    setIsLoggedIn(true);
+
+    navigate('/');
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Something went wrong!");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

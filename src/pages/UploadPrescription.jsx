@@ -2,22 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Plus, X, Loader2 } from 'lucide-react';
 import { createWorker } from 'tesseract.js';
 
-interface Medicine {
-  name: string;
-  dosage: string;
-  frequency: string;
-}
-
 export default function UploadPrescription() {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [doctorName, setDoctorName] = useState('');
   const [doctorSpecialization, setDoctorSpecialization] = useState('');
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [medicines, setMedicines] = useState([]);
   const [notes, setNotes] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   // Use ref to handle progress updates in worker callback
   const progressRef = useRef(setProcessingProgress);
@@ -25,7 +19,7 @@ export default function UploadPrescription() {
     progressRef.current = setProcessingProgress;
   }, []);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
@@ -35,7 +29,7 @@ export default function UploadPrescription() {
     await processImage(selectedFile);
   };
 
-  const processImage = async (file: File) => {
+  const processImage = async (file) => {
     setIsProcessing(true);
     setProcessingProgress(0);
 
@@ -67,11 +61,11 @@ export default function UploadPrescription() {
     }
   };
 
-  const extractInformation = (text: string) => {
+  const extractInformation = (text) => {
     const lines = text.split('\n');
     let doctorName = '';
     let specialization = '';
-    const medicines: Medicine[] = [];
+    const medicines = [];
     
     // Improved regex patterns
     const doctorPattern = /(?:dr|doctor|md)[.]?\s*([a-z]+\s+[a-z]+(?:\s+[a-z]+)?)/gi;
@@ -108,24 +102,21 @@ export default function UploadPrescription() {
     return { doctorName, specialization, medicines };
   };
 
-  // Rest of the component remains the same as your original code
-  // (addMedicine, removeMedicine, updateMedicine, handleSubmit, JSX)
-
   const addMedicine = () => {
     setMedicines([...medicines, { name: '', dosage: '', frequency: '' }]);
   };
 
-  const removeMedicine = (index: number) => {
+  const removeMedicine = (index) => {
     setMedicines(medicines.filter((_, i) => i !== index));
   };
 
-  const updateMedicine = (index: number, field: keyof Medicine, value: string) => {
+  const updateMedicine = (index, field, value) => {
     const updatedMedicines = [...medicines];
     updatedMedicines[index] = { ...updatedMedicines[index], [field]: value };
     setMedicines(updatedMedicines);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!doctorName || medicines.length === 0) {
       setError('Please fill required fields (Doctor Name and at least one medicine)');
@@ -344,14 +335,14 @@ export default function UploadPrescription() {
                   setError(null);
                 }}
               >
-                Clear
+                Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 disabled={isProcessing}
+                className="inline-flex justify-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
               >
-                Upload Prescription
+                {isProcessing ? 'Processing...' : 'Submit'}
               </button>
             </div>
           </form>

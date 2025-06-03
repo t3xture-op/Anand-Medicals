@@ -1,7 +1,4 @@
-// import React from 'react';
-// import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
-import { Product } from '../types';
 import { ShoppingCart } from 'lucide-react';
 
 const categories = {
@@ -128,7 +125,7 @@ export default function Categories() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                {category.products.map((product: Product) => (
+                {category.products.map((product) => (
                   <div key={product.id} className="bg-white rounded-lg border shadow-sm">
                     <div className="aspect-w-1 aspect-h-1">
                       <img

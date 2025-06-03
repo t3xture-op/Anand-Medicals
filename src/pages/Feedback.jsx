@@ -1,15 +1,8 @@
 import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 
-interface FeedbackForm {
-  rating: number;
-  name: string;
-  email: string;
-  message: string;
-}
-
 export default function Feedback() {
-  const [feedback, setFeedback] = useState<FeedbackForm>({
+  const [feedback, setFeedback] = useState({
     rating: 0,
     name: '',
     email: '',
@@ -17,13 +10,12 @@ export default function Feedback() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleRatingClick = (rating: number) => {
-    setFeedback(prev => ({ ...prev, rating }));
+  const handleRatingClick = (rating) => {
+    setFeedback((prev) => ({ ...prev, rating }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically send the feedback to your backend
     console.log('Feedback submitted:', feedback);
     setSubmitted(true);
   };
@@ -57,7 +49,7 @@ export default function Feedback() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-md p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Feedback</h1>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-4">
@@ -93,7 +85,7 @@ export default function Feedback() {
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                 value={feedback.name}
-                onChange={(e) => setFeedback(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setFeedback((prev) => ({ ...prev, name: e.target.value }))}
               />
             </div>
 
@@ -107,7 +99,7 @@ export default function Feedback() {
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                 value={feedback.email}
-                onChange={(e) => setFeedback(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => setFeedback((prev) => ({ ...prev, email: e.target.value }))}
               />
             </div>
 
@@ -122,7 +114,7 @@ export default function Feedback() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                 placeholder="Tell us about your experience..."
                 value={feedback.message}
-                onChange={(e) => setFeedback(prev => ({ ...prev, message: e.target.value }))}
+                onChange={(e) => setFeedback((prev) => ({ ...prev, message: e.target.value }))}
               />
             </div>
 

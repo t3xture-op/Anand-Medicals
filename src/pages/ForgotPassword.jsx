@@ -5,7 +5,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
     // Handle password reset logic here
@@ -22,7 +22,7 @@ export default function ForgotPassword() {
             Enter your email address and we'll send you a link to reset your password.
           </p>
         </div>
-        
+
         {submitted ? (
           <div className="text-center">
             <div className="rounded-md bg-green-50 p-4">

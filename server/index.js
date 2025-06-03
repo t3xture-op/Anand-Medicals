@@ -18,7 +18,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cookieParser());
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // your frontend URL
+  credentials: true //  REQUIRED to allow cookies
+}));
 app.use(express.json());
 
 // MongoDB Connection

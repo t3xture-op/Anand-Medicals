@@ -1,15 +1,12 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Truck, Landmark, Smartphone } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 
-type PaymentMethod = 'cod' | 'online';
-type OnlinePaymentOption = 'gpay' | 'netbanking' | 'card' | 'upi';
-
 export default function Payment() {
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
-  const [onlinePaymentOption, setOnlinePaymentOption] = useState<OnlinePaymentOption>('gpay');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [onlinePaymentOption, setOnlinePaymentOption] = useState('gpay');
   const cartItems = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
 
@@ -18,16 +15,9 @@ export default function Payment() {
   const total = subtotal + shipping;
 
   const handlePayment = async () => {
-    // Here you would typically integrate with a payment gateway
-    // For now, we'll just simulate a successful payment
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Clear cart after successful payment
       clearCart();
-      
-      // Navigate to success page
       navigate('/payment-success');
     } catch (error) {
       console.error('Payment failed:', error);
@@ -41,7 +31,6 @@ export default function Payment() {
         <div className="bg-white rounded-lg shadow-md p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Payment</h1>
 
-          {/* Order Summary */}
           <div className="bg-gray-50 rounded-lg p-6 mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
             <div className="space-y-2">
@@ -62,10 +51,9 @@ export default function Payment() {
             </div>
           </div>
 
-          {/* Payment Method Selection */}
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-900">Select Payment Method</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 className={`p-4 border rounded-lg flex items-center space-x-3 ${
@@ -98,7 +86,6 @@ export default function Payment() {
               </button>
             </div>
 
-            {/* Online Payment Options */}
             {paymentMethod === 'online' && (
               <div className="mt-6 space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">Select Payment Option</h3>
@@ -154,7 +141,6 @@ export default function Payment() {
               </div>
             )}
 
-            {/* Payment Action Buttons */}
             <div className="flex justify-end space-x-4 mt-8">
               <button
                 type="button"

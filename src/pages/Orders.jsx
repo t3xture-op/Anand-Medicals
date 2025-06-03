@@ -92,7 +92,7 @@ export default function Orders() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const filteredOrders = sampleOrders.filter(order => 
+  const filteredOrders = sampleOrders.filter(order =>
     order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.items.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );

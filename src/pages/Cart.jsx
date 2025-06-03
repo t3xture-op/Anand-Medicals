@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Trash2, MinusCircle, PlusCircle, FileUp } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
@@ -9,8 +8,8 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 export default function Cart() {
   const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity } = useCartStore();
-  
-  const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+
+  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const shipping = subtotal > 500 ? 0 : 50;
   const total = subtotal + shipping;
 
@@ -54,7 +53,7 @@ export default function Cart() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8">
             <div className="bg-white shadow-sm rounded-lg">

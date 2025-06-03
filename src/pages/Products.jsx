@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
-import { Product } from '../types';
 import SearchBar from '../components/SearchBar';
 
-const products: Product[] = [
+const products = [
   {
     id: '1',
     name: 'Paracetamol 500mg',
@@ -75,7 +74,7 @@ export default function Products() {
             />
           </div>
         </div>
-        
+
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No products found matching your search.</p>

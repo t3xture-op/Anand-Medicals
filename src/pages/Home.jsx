@@ -139,7 +139,7 @@ export default function Home() {
       if (!isPaused) {
         setCurrentSlide((prev) => (prev + 1) % carouselItems.length);
       }
-    }, 5000); // Change slide every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [isPaused]);
@@ -152,7 +152,7 @@ export default function Home() {
     setCurrentSlide((prev) => (prev - 1 + carouselItems.length) % carouselItems.length);
   };
 
-  const goToSlide = (index: number) => {
+  const goToSlide = (index) => {
     setCurrentSlide(index);
   };
 
@@ -206,7 +206,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-          
+
           {/* Navigation Buttons */}
           <button
             onClick={prevSlide}

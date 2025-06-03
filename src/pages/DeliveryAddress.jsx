@@ -2,21 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 
-interface Address {
-  fullName: string;
-  phoneNumber: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  pincode: string;
-  latitude?: number;
-  longitude?: number;
-}
-
 export default function DeliveryAddress() {
   const navigate = useNavigate();
-  const [address, setAddress] = useState<Address>({
+  const [address, setAddress] = useState({
     fullName: '',
     phoneNumber: '',
     addressLine1: '',
@@ -24,11 +12,13 @@ export default function DeliveryAddress() {
     city: '',
     state: '',
     pincode: '',
+    latitude: undefined,
+    longitude: undefined,
   });
   const [loading, setLoading] = useState(false);
   const [locationShared, setLocationShared] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setAddress(prev => ({ ...prev, [name]: value }));
   };
@@ -57,9 +47,8 @@ export default function DeliveryAddress() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically save the address and proceed to payment
     navigate('/cart/payment');
   };
 

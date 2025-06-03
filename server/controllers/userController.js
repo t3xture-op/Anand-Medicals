@@ -82,7 +82,11 @@ export async function userLogin(req,res){
       message:"logined succesfully",
       data:{
         accessToken,
-        refreshToken
+        refreshToken,
+        user: {
+         name: user.name,
+         email: user.email,
+        }
       }
     })
   } catch (error) {
