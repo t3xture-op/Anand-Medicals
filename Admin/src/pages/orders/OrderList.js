@@ -1,0 +1,411 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+  Search, 
+  Filter, 
+  ChevronDown, 
+  Calendar, 
+  X,
+  ExternalLink
+} from 'lucide-react';
+import { orders } from '../../utils/mockData';
+
+const OrderList = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [paymentFilter, setPaymentFilter] = useState('');
+  const [prescriptionFilter, setPresFilter] = useState('');
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Filter orders
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = 
+      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter ? order.status === statusFilter : true;
+    
+    const matchesPayment = paymentFilter ? order.paymentStatus === paymentFilter : true;
+    
+    const matchesPrescription = 
+      prescriptionFilter === 'required' ? order.prescriptionRequired === true :
+      prescriptionFilter === 'notRequired' ? order.prescriptionRequired === false :
+      true;
+    
+    let matchesDate = true;
+    if (dateRange.from && dateRange.to) {
+      const orderDate = new Date(order.orderDate);
+      const fromDate = new Date(dateRange.from);
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59); // Include the entire "to" day
+      
+      matchesDate = orderDate >= fromDate && orderDate <= toDate;
+    }
+    
+    return matchesSearch && matchesStatus && matchesPayment && matchesPrescription && matchesDate;
+  });
+
+  // Get status badge color
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-amber-100 text-amber-800';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'shipped':
+        return 'bg-purple-100 text-purple-800';
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Get payment status badge color
+  const getPaymentBadge = (status) => {
+    switch (status) {
+      case 'paid':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-amber-100 text-amber-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      case 'refunded':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('');
+    setPaymentFilter('');
+    setPresFilter('');
+    setDateRange({ from: '', to: '' });
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    const options = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  return (
+    <div className="space-y-6 fade-in">
+      {/* Header */}
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <h1 className="text-xl font-semibold text-gray-800">Order Management</h1>
+      </div>
+      
+      {/* Filters and search */}
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {/* Search bar */}
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search size={18} className="text-gray-400" />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by order number or customer name..."
+              className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+          
+          {/* Filter button (mobile) */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:hidden"
+          >
+            <Filter size={18} className="mr-2" />
+            Filters
+            {(statusFilter || paymentFilter || prescriptionFilter || dateRange.from) && (
+              <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
+                {(statusFilter ? 1 : 0) + 
+                 (paymentFilter ? 1 : 0) + 
+                 (prescriptionFilter ? 1 : 0) + 
+                 (dateRange.from ? 1 : 0)}
+              </span>
+            )}
+          </button>
+          
+          {/* Filters (desktop) */}
+          <div className="hidden items-center gap-3 sm:flex">
+            {/* Order Status filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            
+            {/* Payment Status filter */}
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+              className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">All Payments</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+              <option value="refunded">Refunded</option>
+            </select>
+            
+            {/* Prescription filter */}
+            <select
+              value={prescriptionFilter}
+              onChange={(e) => setPresFilter(e.target.value)}
+              className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">All Orders</option>
+              <option value="required">Prescription Required</option>
+              <option value="notRequired">No Prescription</option>
+            </select>
+            
+            {/* Date Range Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                className="flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Calendar size={16} className="mr-2" />
+                Date Range
+                <ChevronDown size={16} className="ml-2" />
+              </button>
+              
+              {showFilters && (
+                <div className="absolute right-0 z-10 mt-2 w-72 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="p-4">
+                    <div className="mb-4 grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">From</label>
+                        <input
+                          type="date"
+                          value={dateRange.from}
+                          onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">To</label>
+                        <input
+                          type="date"
+                          value={dateRange.to}
+                          onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                          min={dateRange.from}
+                          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowFilters(false)}
+                        className="btn btn-sm btn-outline"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {(statusFilter || paymentFilter || prescriptionFilter || dateRange.from) && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center text-sm text-blue-600 hover:text-blue-500"
+              >
+                <X size={16} className="mr-1" />
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Mobile filters */}
+        {showFilters && (
+          <div className="mt-4 space-y-4 border-t border-gray-200 pt-4 sm:hidden">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Order Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Payment Status</label>
+              <select
+                value={paymentFilter}
+                onChange={(e) => setPaymentFilter(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">All Payments</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Prescription</label>
+              <select
+                value={prescriptionFilter}
+                onChange={(e) => setPresFilter(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">All Orders</option>
+                <option value="required">Prescription Required</option>
+                <option value="notRequired">No Prescription</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Date Range</label>
+              <div className="mt-1 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500">From</label>
+                  <input
+                    type="date"
+                    value={dateRange.from}
+                    onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500">To</label>
+                  <input
+                    type="date"
+                    value={dateRange.to}
+                    onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                    min={dateRange.from}
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {(statusFilter || paymentFilter || prescriptionFilter || dateRange.from) && (
+              <button
+                onClick={clearFilters}
+                className="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-blue-600 shadow-sm hover:bg-gray-50"
+              >
+                <X size={16} className="mr-1" />
+                Clear Filters
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Orders table */}
+      <div className="table-container">
+        <table className="table">
+          <thead className="table-header">
+            <tr>
+              <th className="table-header-cell">Order Number</th>
+              <th className="table-header-cell">Customer</th>
+              <th className="table-header-cell">Date</th>
+              <th className="table-header-cell">Total</th>
+              <th className="table-header-cell">Status</th>
+              <th className="table-header-cell">Payment</th>
+              <th className="table-header-cell">Prescription</th>
+              <th className="table-header-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="table-body">
+            {filteredOrders.length > 0 ? (
+              filteredOrders.map((order) => (
+                <tr key={order.id} className="table-row">
+                  <td className="table-cell font-medium">{order.orderNumber}</td>
+                  <td className="table-cell">{order.customerName}</td>
+                  <td className="table-cell">{formatDate(order.orderDate)}</td>
+                  <td className="table-cell font-medium">₹{order.totalAmount.toFixed(2)}</td>
+                  <td className="table-cell">
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(order.status)}`}>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="table-cell">
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getPaymentBadge(order.paymentStatus)}`}>
+                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                    </span>
+                  </td>
+                  <td className="table-cell">
+                    {order.prescriptionRequired ? (
+                      order.prescriptionStatus === 'approved' ? (
+                        <span className="inline-flex rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                          Approved
+                        </span>
+                      ) : order.prescriptionStatus === 'pending' ? (
+                        <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                          Pending Review
+                        </span>
+                      ) : (
+                        <span className="inline-flex rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                          Rejected
+                        </span>
+                      )
+                    ) : (
+                      <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                        Not Required
+                      </span>
+                    )}
+                  </td>
+                  <td className="table-cell">
+                    <Link
+                      to={`/orders/${order.id}`}
+                      className="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                    >
+                      <ExternalLink size={12} className="mr-1" />
+                      View Details
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="px-6 py-8 text-center text-sm text-gray-500">
+                  No orders found matching your criteria.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default OrderList;

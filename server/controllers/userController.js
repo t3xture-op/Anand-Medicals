@@ -5,6 +5,7 @@ import PasswordReset from '../models/PasswordReset.js';
 import { sendPasswordResetEmail } from '../utils/emailService.js';
 import generatedAccessToken from '../utils/generatedAccessToken.js';
 import generatedRefreshToken from '../utils/generatedRefreshToken.js';
+import { match } from 'assert';
 
 
 //register a user
@@ -86,9 +87,11 @@ export async function userLogin(req,res){
         user: {
          name: user.name,
          email: user.email,
+         role:user.role
         }
       }
     })
+    
   } catch (error) {
     res.status(500).json({ message: 'Error logging in',error: error.message });
   }
@@ -156,11 +159,15 @@ export async function forgotPassword(req,res){
 }
 
 
-//reset password
-export async function resetPassword(req,res){
- try {
-    const { email, otp, newPassword } = req.body;
-    
+//verify otp
+export async function verifyOtp(req, res) {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: 'Email and OTP are required' });
+  }
+
+  try {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -177,13 +184,30 @@ export async function resetPassword(req,res){
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
-    // Update password and mark OTP as used
-    user.password = newPassword;
-    await user.save();
-    
+  
     passwordReset.isUsed = true;
     await passwordReset.save();
 
+    res.status(200).json({ message: 'OTP verified' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+}
+
+
+//reset password
+export async function resetPassword(req,res){
+ try {
+    const { email,newPassword,confirmNewPass } = req.body;
+    
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+      user.password = newPassword;
+    await user.save();
     res.json({ message: 'Password reset successful' });
   } catch (error) {
     res.status(500).json({ message: 'Error resetting password' });

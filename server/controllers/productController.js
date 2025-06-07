@@ -1,4 +1,8 @@
 import Product from '../models/Product.js';
+import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import { extractPublicId } from 'cloudinary-build-url';
+
 
 
 //get all products
@@ -13,89 +17,134 @@ export async function getAllProducts(req,res){
 
 
 //get product by id
-export async function getProductById(req,res){
-    try {
+export async function getProductById(req, res) {
+  try {
     const product = await Product.findById(req.params.id);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
     res.json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching product' });
+    console.error("Error fetching product:", error);
+    res.status(500).json({ message: "Error fetching product" });
   }
 }
+
 
 // Create new product (admin only)
 export async function createProduct(req, res) {
   try {
-    const { name, description, price } = req.body;
-    const image = req.file;
-
-    const product = new Product({
+    const {
       name,
-      description,
+      category,
       price,
-      image: {
-        url: image.path,
-        public_id: image.filename,
-      },
+      stock,
+      manufacturer,
+      description,
+      prescription_status,
+    } = req.body;
+
+    let imageData = "";
+
+    if (req.file) {
+      // With multer-storage-cloudinary, image is already uploaded
+      imageData = req.file.path || req.file.location || req.file.secure_url || "";
+    }
+
+    const newProduct = new Product({
+      name,
+      category,
+      price,
+      stock,
+      manufacturer,
+      description,
+      prescription_status,
+      image: imageData,
     });
 
-    await product.save();
-    res.status(201).json(product);
+    await newProduct.save();
+
+    res.status(201).json({ message: "Product added", product: newProduct });
   } catch (error) {
-    res.status(400).json({ message: 'Error creating product', error: error.message });
+    console.error("Product creation error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 }
 
 
 //update product
-import { cloudinary } from '../middlewares/cloudinary.js';
-
 export async function updateProduct(req, res) {
   try {
-    const { name, description, price } = req.body;
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    const {
+      name,
+      description,
+      price,
+      stock,
+      category,
+      prescription_status,
+      manufacturer
+    } = req.body;
 
-    // Delete old image if new one is uploaded
-    if (req.file && product.image?.public_id) {
-      await cloudinary.uploader.destroy(product.image.public_id);
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
     }
 
+    // Delete old image if new one is uploaded
+    if (req.file && product.image) {
+      const publicId = extractPublicId(product.image);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+      }
+    }
+
+    // Update fields
     product.name = name ?? product.name;
     product.description = description ?? product.description;
     product.price = price ?? product.price;
+    product.stock = stock ?? product.stock;
+    product.category = category ?? product.category;
+    product.manufacturer = manufacturer ?? product.manufacturer;
 
-    if (req.file) {
-      product.image = {
-        url: req.file.path,
-        public_id: req.file.filename,
-      };
+    if (typeof prescription_status === 'string') {
+      product.prescription_status = prescription_status === 'true';
+    } else if (typeof prescription_status === 'boolean') {
+      product.prescription_status = prescription_status;
+    }
+
+    // Image assignment (Cloudinary multer already uploaded)
+    if (req.file && req.file.path.startsWith("http")) {
+      product.image = req.file.path; // secure_url from Cloudinary
     }
 
     await product.save();
     res.json(product);
+
   } catch (error) {
+    console.error("Update Error:", error);
     res.status(400).json({ message: 'Error updating product', error: error.message });
   }
 }
 
 
-
 //delete product
+
 export async function deleteProduct(req, res) {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    if (product.image?.public_id) {
-      await cloudinary.uploader.destroy(product.image.public_id);
+    if (product.image) {
+      const publicId = extractPublicId(product.image);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+      }
     }
 
     await product.deleteOne();
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting product' });
+    console.error("Delete Error:", error);
+    res.status(500).json({ message: 'Error deleting product', error: error.message });
   }
 }

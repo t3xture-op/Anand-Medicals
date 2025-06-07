@@ -128,8 +128,8 @@ export default function Navbar() {
                 {showUserMenu && isLoggedIn && (
                   <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md text-sm text-black z-10">
                     <div className="px-4 py-2 border-b text-sm text-gray-700">
-                      <h3>Hi,</h3>
-                      <h5>{user?.name}</h5>
+                      <h3 className="text-[16px] font-[400]">Hi,</h3>
+                      <h5 className="pl-4 font-[700]">{user?.name}</h5>
                     </div>
 
                     <Link

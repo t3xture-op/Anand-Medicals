@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { type } from 'os';
 
 const productSchema = new mongoose.Schema({
   name: {
@@ -15,13 +16,12 @@ const productSchema = new mongoose.Schema({
     //required: true
   },
   category: {
-    type: String,
-    //required: true
-  },
+  type: String,
+  required: true
+},
   image: {
-    url: String,
-    public_id: String,
-  },
+  type:String
+},
   stock: {
     type: Number,
     //required: true,
@@ -30,6 +30,10 @@ const productSchema = new mongoose.Schema({
   manufacturer: {
     type: String,
     //required: true
+  },
+  prescription_status:{
+    type:Boolean,
+    default:false
   },
   createdAt: {
     type: Date,

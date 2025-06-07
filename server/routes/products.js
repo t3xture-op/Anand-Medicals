@@ -1,8 +1,9 @@
 import express from 'express';
-import { upload } from '../middlewares/cloudinary.js'; 
+import multer from 'multer';
 import { getAllProducts,getProductById,createProduct,updateProduct,deleteProduct } from '../controllers/productController.js';
+import { uploadProduct } from '../middlewares/cloudinary.js';
 
-
+const upload = multer({ dest: "uploads/" });
 const productRouter = express.Router();
 
 // Get all products
@@ -14,13 +15,13 @@ productRouter.get('/:id',getProductById)
 
 
 // Create new product (admin only)
-productRouter.post('/', upload.single('image'), createProduct);
+productRouter.post('/add', uploadProduct.single('image'), createProduct);
 
 
 // Update product (admin only)
-productRouter.put('/:id', upload.single('image'), updateProduct);
+productRouter.put('/edit/:id', uploadProduct.single('image'), updateProduct);
 
 // Delete product (admin only)
-productRouter.delete('/:id',deleteProduct)
+productRouter.delete('/delete/:id',deleteProduct)
 
 export default productRouter;
