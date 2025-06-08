@@ -1,62 +1,6 @@
-import React, { useState } from 'react';
-import { Package, Truck, CheckCircle, Clock, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Package, Truck, CheckCircle, Clock, Search, XCircle } from 'lucide-react';
 
-// Sample data - in a real app, this would come from an API
-const sampleOrders = [
-  {
-    id: 'ORD123456',
-    date: '2024-03-15',
-    status: 'delivered',
-    items: [
-      {
-        id: '1',
-        name: 'Paracetamol 500mg',
-        quantity: 2,
-        price: 29.99,
-        image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=60'
-      },
-      {
-        id: '2',
-        name: 'Vitamin C Tablets',
-        quantity: 1,
-        price: 199.99,
-        image: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800&auto=format&fit=crop&q=60'
-      }
-    ],
-    total: 259.97,
-    shippingAddress: {
-      name: 'John Doe',
-      address: '123 Main St',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pincode: '400001'
-    },
-    paymentMethod: 'Credit Card'
-  },
-  {
-    id: 'ORD123457',
-    date: '2024-03-14',
-    status: 'shipped',
-    items: [
-      {
-        id: '3',
-        name: 'First Aid Kit',
-        quantity: 1,
-        price: 499.99,
-        image: 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=800&auto=format&fit=crop&q=60'
-      }
-    ],
-    total: 499.99,
-    shippingAddress: {
-      name: 'John Doe',
-      address: '123 Main St',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pincode: '400001'
-    },
-    paymentMethod: 'UPI'
-  }
-];
 
 const getStatusIcon = (status) => {
   switch (status) {
@@ -68,6 +12,8 @@ const getStatusIcon = (status) => {
       return <CheckCircle className="w-5 h-5 text-green-500" />;
     case 'cancelled':
       return <Package className="w-5 h-5 text-red-500" />;
+    case 'pending':
+      return <Clock className="w-5 h-5 text-yellow-500" />;
     default:
       return null;
   }
@@ -83,6 +29,8 @@ const getStatusColor = (status) => {
       return 'bg-green-100 text-green-800';
     case 'cancelled':
       return 'bg-red-100 text-red-800';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -90,11 +38,51 @@ const getStatusColor = (status) => {
 
 export default function Orders() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredOrders = sampleOrders.filter(order =>
-    order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.items.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/orders/my', {
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('❌ Error fetching orders:', data);
+        setOrders([]);
+        return;
+      }
+      setOrders(data);
+    } catch (error) {
+      console.error('❌ Network or parsing error:', error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    const confirmCancel = window.confirm('Are you sure you want to cancel this order?');
+    if (!confirmCancel) return;
+
+    try {
+      await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+      fetchOrders();
+    } catch (error) {
+      console.error('Error cancelling order', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const filteredOrders = orders.filter(order =>
+    order._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.items.some(item => item.product.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -109,14 +97,16 @@ export default function Orders() {
             <input
               type="text"
               placeholder="Search orders by ID or product name"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        {filteredOrders.length === 0 ? (
+        {loading ? (
+          <p>Loading orders...</p>
+        ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <Package className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No orders found</h3>
@@ -127,16 +117,13 @@ export default function Orders() {
         ) : (
           <div className="space-y-6">
             {filteredOrders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-white rounded-lg shadow-sm overflow-hidden"
-              >
+              <div key={order._id} className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-4">
                         <h2 className="text-lg font-semibold text-gray-900">
-                          Order #{order.id}
+                          Order #{order._id}
                         </h2>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                           {getStatusIcon(order.status)}
@@ -144,47 +131,60 @@ export default function Orders() {
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
-                        Placed on {new Date(order.date).toLocaleDateString()}
+                        Placed on {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-semibold text-gray-900">₹{order.total.toFixed(2)}</p>
+                      <p className="text-lg font-semibold text-gray-900">₹{order.totalAmount.toFixed(2)}</p>
                       <p className="text-sm text-gray-500">{order.paymentMethod}</p>
+                      {order.status === 'pending' && (
+                        <button
+                          onClick={() => handleCancelOrder(order._id)}
+                          className="mt-2 inline-flex items-center px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded hover:bg-red-200"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Cancel Order
+                        </button>
+                      )}
                     </div>
                   </div>
 
                   <div className="mt-6">
                     <h3 className="text-sm font-medium text-gray-900">Items</h3>
                     <div className="mt-2 divide-y divide-gray-200">
-                      {order.items.map((item) => (
-                        <div key={item.id} className="py-4 flex items-center">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="h-16 w-16 object-cover rounded-md"
-                          />
-                          <div className="ml-4 flex-1">
-                            <h4 className="text-sm font-medium text-gray-900">{item.name}</h4>
-                            <p className="mt-1 text-sm text-gray-500">
-                              Quantity: {item.quantity} × ₹{item.price.toFixed(2)}
-                            </p>
+                      {order.items.map((item) => {
+                        const imgUrl = item.product.image || '/placeholder.jpg';
+                        return (
+                          <div key={item._id} className="py-4 flex items-center">
+                            <img
+                              src={imgUrl}
+                              alt={item.product.name}
+                              className="h-16 w-16 object-cover rounded-md"
+                            />
+                            <div className="ml-4 flex-1">
+                              <h4 className="text-sm font-medium text-gray-900">{item.product.name}</h4>
+                              <p className="mt-1 text-sm text-gray-500">
+                                Quantity: {item.quantity} × ₹{item.price.toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-gray-900">
+                                ₹{(item.quantity * item.price).toFixed(2)}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">
-                              ₹{(item.quantity * item.price).toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
                   <div className="mt-6">
                     <h3 className="text-sm font-medium text-gray-900">Shipping Address</h3>
                     <address className="mt-2 text-sm text-gray-500 not-italic">
-                      {order.shippingAddress.name}<br />
-                      {order.shippingAddress.address}<br />
-                      {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.pincode}
+                      {order.shippingAddress.fullName}<br />
+                      {order.shippingAddress.addressLine1}<br />
+                      {order.shippingAddress.addressLine2 && `${order.shippingAddress.addressLine2}, `}{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}<br />
+                      Phone: {order.shippingAddress.phoneNumber}
                     </address>
                   </div>
                 </div>

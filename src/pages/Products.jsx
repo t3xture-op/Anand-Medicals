@@ -1,71 +1,75 @@
-import React, { useState, useMemo } from 'react';
-import { ShoppingCart } from 'lucide-react';
-import { useCartStore } from '../store/cartStore';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
-
-const products = [
-  {
-    id: '1',
-    name: 'Paracetamol 500mg',
-    price: 29.99,
-    description: 'Fever and pain relief tablets',
-    category: 'general',
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=60',
-    stock: 100,
-    manufacturer: 'HealthCare Pharma'
-  },
-  {
-    id: '2',
-    name: 'Pet Vitamins',
-    price: 299.99,
-    description: 'Essential vitamins for pets',
-    category: 'veterinary',
-    image: 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?w=800&auto=format&fit=crop&q=60',
-    stock: 50,
-    manufacturer: 'PetCare Plus'
-  },
-  {
-    id: '3',
-    name: 'Baby Diaper Pack',
-    price: 499.99,
-    description: 'Ultra-soft diapers, pack of 40',
-    category: 'diaper',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=60',
-    stock: 200,
-    manufacturer: 'BabyCare'
-  },
-  {
-    id: '4',
-    name: 'Moisturizing Cream',
-    price: 199.99,
-    description: 'Hydrating face cream',
-    category: 'cosmetic',
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=60',
-    stock: 75,
-    manufacturer: 'GlowSkin'
-  },
-];
+import { useCartStore } from '../store/cartStore';
 
 export default function Products() {
+  const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const addToCart = useCartStore((state) => state.addToCart);
 
-  const filteredProducts = useMemo(() => {
-    const query = searchQuery.toLowerCase();
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query) ||
-        product.manufacturer.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/products');
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter((product) =>
+    [product.name, product.description, product.category, product.manufacturer]
+      .join(' ')
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
+
+  const handleAddToCart = async (product) => {
+    addToCart({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      discount: product.discount,
+      discount_price: product.discount_price,
+      image: product.image,
+      stock: product.stock,
+      quantity: 1,
+    });
+
+    try {
+      const response = await fetch('http://localhost:5000/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          product: product._id,
+          quantity: 1,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.message || 'Failed to add to cart');
+        return;
+      }
+
+      alert('Item added to your cart');
+    } catch (error) {
+      alert('Error adding to cart', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Our Products</h1>
+          <h1 className="text-3xl font-bold text-gray-900">PRODUCTS</h1>
           <div className="w-full md:w-96">
             <SearchBar
               value={searchQuery}
@@ -75,34 +79,57 @@ export default function Products() {
           </div>
         </div>
 
+        {/* Product Grid */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No products found matching your search.</p>
+            <p className="text-gray-500 text-lg">No products found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="aspect-w-1 aspect-h-1">
+              <div
+                key={product._id}
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-transform duration-300 transform hover:scale-105 overflow-hidden"
+              >
+                <Link to={`/product/${product._id}`}>
                   <img
                     src={product.image}
                     alt={product.name}
                     className="w-full h-48 object-cover"
                   />
-                </div>
+                </Link>
+
                 <div className="p-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h2>
-                  <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+                  <Link to={`/product/${product._id}`}>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                      {product.name}
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {product.manufacturer}
+                    </p>
+                  </Link>
+
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-green-700 font-bold">₹{product.price}</span>
-                    <span className="text-sm text-gray-500">{product.stock} in stock</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-green-700 font-bold text-lg">
+                        ₹{product.discount_price}
+                      </span>
+                      {product.discount > 0 && (
+                        <span className="text-sm text-red-500 font-semibold">
+                          {product.discount}% off
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {product.stock} in stock
+                    </span>
                   </div>
+
                   <button
-                    onClick={() => addToCart(product)}
-                    className="w-full bg-green-700 text-white py-2 px-4 rounded-md hover:bg-green-800 transition-colors flex items-center justify-center space-x-2"
+                    onClick={() => handleAddToCart(product)}
+                    className="mt-2 w-full bg-green-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-green-700 transition"
                   >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>Add to Cart</span>
+                    Add to Cart
                   </button>
                 </div>
               </div>

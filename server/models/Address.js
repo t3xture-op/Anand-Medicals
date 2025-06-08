@@ -35,6 +35,10 @@ const addressSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  coordinates: {
+  lat: Number,
+  lng: Number
+},
   createdAt: {
     type: Date,
     default: Date.now

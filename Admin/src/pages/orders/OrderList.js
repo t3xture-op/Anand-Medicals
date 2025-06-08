@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, 
@@ -8,9 +8,11 @@ import {
   X,
   ExternalLink
 } from 'lucide-react';
-import { orders } from '../../utils/mockData';
 
 const OrderList = () => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('');
@@ -18,6 +20,46 @@ const OrderList = () => {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [showFilters, setShowFilters] = useState(false);
   
+  // In your OrderList component
+useEffect(() => {
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('accessToken') || 
+                   document.cookie.split('; ').find(row => row.startsWith('accessToken='))?.split('=')[1];
+      
+      const response = await fetch('http://localhost:5000/api/orders', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include' // If using cookies
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          // Handle unauthorized/forbidden (redirect to login)
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error('Failed to fetch orders');
+      }
+      
+      const data = await response.json();
+      setOrders(data);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err.message || 'Failed to fetch orders. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchOrders();
+}, []);
+
   // Filter orders
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
@@ -67,7 +109,7 @@ const OrderList = () => {
   // Get payment status badge color
   const getPaymentBadge = (status) => {
     switch (status) {
-      case 'paid':
+      case 'completed':
         return 'bg-green-100 text-green-800';
       case 'pending':
         return 'bg-amber-100 text-amber-800';
@@ -100,6 +142,29 @@ const OrderList = () => {
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-md bg-red-50 p-4">
+        <div className="flex">
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">Error loading orders</h3>
+            <div className="mt-2 text-sm text-red-700">
+              <p>{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 fade-in">
@@ -165,7 +230,7 @@ const OrderList = () => {
               className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">All Payments</option>
-              <option value="paid">Paid</option>
+              <option value="completed">Paid</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
               <option value="refunded">Refunded</option>
@@ -271,7 +336,7 @@ const OrderList = () => {
                 className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="">All Payments</option>
-                <option value="paid">Paid</option>
+                <option value="completed">Paid</option>
                 <option value="pending">Pending</option>
                 <option value="failed">Failed</option>
                 <option value="refunded">Refunded</option>
@@ -359,7 +424,8 @@ const OrderList = () => {
                   </td>
                   <td className="table-cell">
                     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getPaymentBadge(order.paymentStatus)}`}>
-                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                      {order.paymentStatus === 'completed' ? 'Paid' : 
+                       order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
                     </span>
                   </td>
                   <td className="table-cell">
@@ -397,7 +463,7 @@ const OrderList = () => {
             ) : (
               <tr>
                 <td colSpan="8" className="px-6 py-8 text-center text-sm text-gray-500">
-                  No orders found matching your criteria.
+                  {orders.length === 0 ? 'No orders found.' : 'No orders match your criteria.'}
                 </td>
               </tr>
             )}

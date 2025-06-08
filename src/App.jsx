@@ -7,7 +7,9 @@ import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetails';
 import Categories from './pages/Categories';
+import CategoryPage from './pages/CategoryPage';
 import UploadPrescription from './pages/UploadPrescription';
 import Cart from './pages/Cart';
 import DeliveryAddress from './pages/DeliveryAddress';
@@ -19,7 +21,7 @@ import ResetPassword from './pages/ResetPassword'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className=" bg-gray-50 flex flex-col">
       <Navbar />
       <div className="flex-grow">
         <Routes>
@@ -29,7 +31,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/category/:id" element={<CategoryPage />} />
           <Route path="/upload-prescription" element={<UploadPrescription />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/cart/delivery" element={<DeliveryAddress />} />
