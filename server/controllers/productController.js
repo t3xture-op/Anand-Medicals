@@ -3,11 +3,9 @@ import fs from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
 import { extractPublicId } from 'cloudinary-build-url';
 
-
-
-//get all products
-export async function getAllProducts(req,res){
-     try {
+// Get all products
+export async function getAllProducts(req, res) {
+  try {
     const products = await Product.find();
     res.json(products);
   } catch (error) {
@@ -15,8 +13,7 @@ export async function getAllProducts(req,res){
   }
 }
 
-
-//get product by id
+// Get product by ID
 export async function getProductById(req, res) {
   try {
     const product = await Product.findById(req.params.id);
@@ -30,7 +27,6 @@ export async function getProductById(req, res) {
   }
 }
 
-
 // Create new product (admin only)
 export async function createProduct(req, res) {
   try {
@@ -38,23 +34,30 @@ export async function createProduct(req, res) {
       name,
       category,
       price,
+      discount,
       stock,
       manufacturer,
       description,
       prescription_status,
     } = req.body;
-
+    
     let imageData = "";
-
+     
     if (req.file) {
-      // With multer-storage-cloudinary, image is already uploaded
       imageData = req.file.path || req.file.location || req.file.secure_url || "";
     }
 
+    const discount_price =
+      price && discount
+        ? price - (price * discount) / 100
+        : price;
+        
     const newProduct = new Product({
       name,
       category,
       price,
+      discount,
+      discount_price,
       stock,
       manufacturer,
       description,
@@ -71,14 +74,15 @@ export async function createProduct(req, res) {
   }
 }
 
-
-//update product
+// Update product
 export async function updateProduct(req, res) {
   try {
     const {
       name,
       description,
       price,
+      discount,
+      discount_price,
       stock,
       category,
       prescription_status,
@@ -89,6 +93,7 @@ export async function updateProduct(req, res) {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
+    
 
     // Delete old image if new one is uploaded
     if (req.file && product.image) {
@@ -102,6 +107,7 @@ export async function updateProduct(req, res) {
     product.name = name ?? product.name;
     product.description = description ?? product.description;
     product.price = price ?? product.price;
+    product.discount = discount ?? product.discount;
     product.stock = stock ?? product.stock;
     product.category = category ?? product.category;
     product.manufacturer = manufacturer ?? product.manufacturer;
@@ -111,24 +117,31 @@ export async function updateProduct(req, res) {
     } else if (typeof prescription_status === 'boolean') {
       product.prescription_status = prescription_status;
     }
+    
 
-    // Image assignment (Cloudinary multer already uploaded)
+    // Recalculate discount_price
+    const finalPrice = price ?? product.price;
+    const finalDiscount = discount ?? product.discount;
+    product.discount_price =
+      finalPrice && finalDiscount
+        ? finalPrice - (finalPrice * finalDiscount) / 100
+        : finalPrice;
+        
+
+    // Update image
     if (req.file && req.file.path.startsWith("http")) {
-      product.image = req.file.path; // secure_url from Cloudinary
+      product.image = req.file.path;
     }
 
     await product.save();
     res.json(product);
-
   } catch (error) {
     console.error("Update Error:", error);
     res.status(400).json({ message: 'Error updating product', error: error.message });
   }
 }
 
-
-//delete product
-
+// Delete product
 export async function deleteProduct(req, res) {
   try {
     const product = await Product.findById(req.params.id);
@@ -146,23 +159,5 @@ export async function deleteProduct(req, res) {
   } catch (error) {
     console.error("Delete Error:", error);
     res.status(500).json({ message: 'Error deleting product', error: error.message });
-  }
-}
-
-
-//get product by category id
-export async function getProductsByCat(req, res) {
-  try {
-    const id = req.params.id;
-
-    const products = await Product.find({ category: id });
-
-    if (!products || products.length === 0) {
-      return res.status(404).json({ message: "No products found for this category." });
-    }
-
-    res.status(200).json(products);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching products by category", error: error.message });
   }
 }

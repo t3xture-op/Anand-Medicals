@@ -10,14 +10,13 @@ const ProductEdit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-
-  // Ref for the file input
   const fileInputRef = useRef();
 
   const [formData, setFormData] = useState({
     name: '',
     category: '',
     price: '',
+    discount: '',
     stock: '',
     manufacturer: '',
     image: '',
@@ -31,9 +30,7 @@ const ProductEdit = () => {
         const productRes = await fetch(`http://localhost:5000/api/products/${id}`);
         const categoryRes = await fetch(`http://localhost:5000/api/category`);
 
-        if (!productRes.ok || !categoryRes.ok) {
-          throw new Error('Failed to fetch data');
-        }
+        if (!productRes.ok || !categoryRes.ok) throw new Error('Failed to fetch data');
 
         const productData = await productRes.json();
         const categoryData = await categoryRes.json();
@@ -41,11 +38,12 @@ const ProductEdit = () => {
         setFormData({
           name: productData.name || '',
           price: productData.price || '',
+          discount: productData.discount || '',
           description: productData.description || '',
           manufacturer: productData.manufacturer || '',
           stock: productData.stock || '',
           category: productData.category || '',
-          image: productData.image || '', // show existing image
+          image: productData.image || '',
           prescription_status: productData.prescription_status ?? false,
         });
 
@@ -81,10 +79,7 @@ const ProductEdit = () => {
   const clearImage = () => {
     setSelectedFile(null);
     setFormData(prev => ({ ...prev, image: '' }));
-    // Reset the file input’s value so the same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -95,10 +90,11 @@ const ProductEdit = () => {
       form.append('name', formData.name);
       form.append('category', formData.category);
       form.append('price', formData.price);
+      form.append('discount', formData.discount);
       form.append('stock', formData.stock);
       form.append('manufacturer', formData.manufacturer);
       form.append('description', formData.description);
-      form.append('prescription_status', formData.prescription_status);
+      form.append('prescription_status', formData.prescription_status.toString());
       if (selectedFile) {
         form.append('image', selectedFile);
       }
@@ -138,6 +134,11 @@ const ProductEdit = () => {
   if (isLoading) {
     return <div className="p-4 text-center">Loading...</div>;
   }
+
+  const discountedPrice = (
+    formData.price -
+    (formData.price * (formData.discount || 0)) / 100
+  ).toFixed(2);
 
   return (
     <div className="space-y-6 fade-in">
@@ -200,6 +201,18 @@ const ProductEdit = () => {
               />
             </div>
             <div>
+              <label className="form-label">Discount (%)</label>
+              <input
+                type="number"
+                name="discount"
+                value={formData.discount}
+                onChange={handleChange}
+                min="0"
+                max="100"
+                className="form-input"
+              />
+            </div>
+            <div>
               <label className="form-label">Stock Quantity</label>
               <input
                 type="number"
@@ -229,7 +242,7 @@ const ProductEdit = () => {
                 accept="image/*"
                 onChange={handleFileChange}
                 className="form-input"
-                ref={fileInputRef} // attach ref here
+                ref={fileInputRef}
               />
               {formData.image && (
                 <div className="mt-2">
@@ -283,7 +296,10 @@ const ProductEdit = () => {
               <img
                 src={formData.image}
                 alt={formData.name}
-                onError={(e) => (e.target.src = 'https://dummyimage.com/150x150/cccccc/ffffff&text=No+Image')}
+                onError={(e) =>
+                  (e.target.src =
+                    'https://dummyimage.com/150x150/cccccc/ffffff&text=No+Image')
+                }
                 className="h-full w-full object-cover"
               />
             </div>
@@ -295,6 +311,10 @@ const ProductEdit = () => {
               </p>
               <p className="text-sm text-gray-500">
                 Price: ₹{parseFloat(formData.price || 0).toFixed(2)}
+              </p>
+              <p className="text-sm text-gray-500">Discount: {formData.discount || 0}%</p>
+              <p className="text-sm font-semibold text-gray-700">
+                Discounted Price: ₹{discountedPrice}
               </p>
               <p className="text-sm text-gray-500">Stock: {formData.stock} units</p>
               <p className="text-sm text-gray-500">Manufacturer: {formData.manufacturer}</p>

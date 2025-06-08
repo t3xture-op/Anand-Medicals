@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
+import { ToastContainer, toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const CategoryAdd = () => {
   const navigate = useNavigate();
@@ -32,42 +34,40 @@ const CategoryAdd = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (isSubmitting) return;
-  setIsSubmitting(true);
+    e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-  console.log("Submitting form");
+    try {
+      const form = new FormData();
+      form.append("name", formData.name);
+      form.append("slug", formData.slug);
+      form.append("description", formData.description);
+      form.append("isActive", formData.isActive);
+      if (file) form.append("image", file);
 
-  try {
-    const form = new FormData();
-    form.append("name", formData.name);
-    form.append("slug", formData.slug);
-    form.append("description", formData.description);
-    form.append("isActive", formData.isActive);
-    if (file) form.append("image", file);
+      const response = await fetch("http://localhost:5000/api/category/add", {
+        method: "POST",
+        body: form,
+        credentials: "include",
+      });
 
-    const response = await fetch("http://localhost:5000/api/category/add", {
-      method: "POST",
-      body: form,
-      credentials: "include",
-    });
+      const data = await response.json();
+      setIsSubmitting(false);
 
-    const data = await response.json();
-    setIsSubmitting(false);
+      if (!response.ok) {
+        toast.error(`❌ Failed to add category: ${data.message || 'Unknown error'}`);
+        return;
+      }
 
-    if (!response.ok) {
-      alert("Failed to add category: " + JSON.stringify(data));
-      return;
+      toast.success("✅ Category added successfully");
+      setTimeout(() => navigate("/category"), 2000);
+    } catch (err) {
+      console.error(err);
+      toast.error("🚨 Something went wrong!");
+      setIsSubmitting(false);
     }
-
-    alert("Category added successfully");
-    navigate("/category");
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong!");
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="space-y-6 fade-in">
@@ -92,6 +92,18 @@ const CategoryAdd = () => {
                 type="text"
                 name="name"
                 value={formData.name}
+                onChange={handleChange}
+                required
+                className="form-input"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Slug</label>
+              <input
+                type="text"
+                name="slug"
+                value={formData.slug}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -175,6 +187,18 @@ const CategoryAdd = () => {
           </button>
         </div>
       </form>
+
+      <ToastContainer
+        position="top-center"
+        autoClose={4000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        pauseOnFocusLoss
+        theme="light"
+        transition={Bounce}
+      />
     </div>
   );
 };

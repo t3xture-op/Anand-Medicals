@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { productCategories } from "../../utils/mockData";
 import { Save, ArrowLeft } from "lucide-react";
 
 const ProductAdd = () => {
@@ -8,23 +7,26 @@ const ProductAdd = () => {
   const fileInputRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     price: "",
+    discount: "",
     stock: "",
     manufacturer: "",
     image: "",
     description: "",
     PrescriptionStatus: false,
   });
+
   useEffect(() => {
     async function fetchCategories() {
       try {
         const response = await fetch("http://localhost:5000/api/category");
-        if (!response.ok) {
-          throw new Error("Failed to fetch categories");
-        }
+        if (!response.ok) throw new Error("Failed to fetch categories");
         const data = await response.json();
         setCategories(data);
       } catch (error) {
@@ -35,30 +37,19 @@ const ProductAdd = () => {
     fetchCategories();
   }, []);
 
-  const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl); // Clean up previous preview
-    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(selectedFile);
     const url = URL.createObjectURL(selectedFile);
     setPreviewUrl(url);
   };
 
   const handleClearImage = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(null);
     setPreviewUrl(null);
-
-    // Reset file input manually
-    if (fileInputRef.current) {
-      fileInputRef.current.value = null;
-    }
+    if (fileInputRef.current) fileInputRef.current.value = null;
   };
 
   const handleChange = (e) => {
@@ -75,17 +66,14 @@ const ProductAdd = () => {
 
     try {
       const form = new FormData();
-      form.append("name", formData.name);
-      form.append("category", formData.category);
-      form.append("price", formData.price);
-      form.append("stock", formData.stock);
-      form.append("manufacturer", formData.manufacturer);
-      form.append("description", formData.description);
-      form.append("prescription_status", formData.PrescriptionStatus);
+      Object.entries(formData).forEach(([key, val]) =>
+        form.append(
+          key === "PrescriptionStatus" ? "prescription_status" : key,
+          val
+        )
+      );
 
-      if (file) {
-        form.append("image", file);
-      }
+      if (file) form.append("image", file);
 
       const response = await fetch("http://localhost:5000/api/products/add", {
         method: "POST",
@@ -110,6 +98,11 @@ const ProductAdd = () => {
     }
   };
 
+  const discountedPrice =
+    formData.price && formData.discount
+      ? (formData.price - (formData.price * formData.discount) / 100).toFixed(2)
+      : null;
+
   return (
     <div className="space-y-6 fade-in">
       <div className="flex items-center justify-between">
@@ -133,11 +126,8 @@ const ProductAdd = () => {
           </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Product Name */}
             <div>
-              <label htmlFor="name" className="form-label">
-                Product Name
-              </label>
+              <label htmlFor="name" className="form-label">Product Name</label>
               <input
                 type="text"
                 id="name"
@@ -150,11 +140,8 @@ const ProductAdd = () => {
               />
             </div>
 
-            {/* Category - dynamically rendered */}
             <div>
-              <label htmlFor="category" className="form-label">
-                Category
-              </label>
+              <label htmlFor="category" className="form-label">Category</label>
               <select
                 id="category"
                 name="category"
@@ -172,11 +159,8 @@ const ProductAdd = () => {
               </select>
             </div>
 
-            {/* Price */}
             <div>
-              <label htmlFor="price" className="form-label">
-                Price (₹)
-              </label>
+              <label htmlFor="price" className="form-label">Price (₹)</label>
               <input
                 type="number"
                 id="price"
@@ -191,11 +175,24 @@ const ProductAdd = () => {
               />
             </div>
 
-            {/* Stock */}
             <div>
-              <label htmlFor="stock" className="form-label">
-                Stock Quantity
-              </label>
+              <label htmlFor="discount" className="form-label">Discount (%)</label>
+              <input
+                type="number"
+                id="discount"
+                name="discount"
+                value={formData.discount}
+                onChange={handleChange}
+                required
+                min="0"
+                step="0.01"
+                className="form-input"
+                placeholder="0%"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="stock" className="form-label">Stock Quantity</label>
               <input
                 type="number"
                 id="stock"
@@ -209,11 +206,8 @@ const ProductAdd = () => {
               />
             </div>
 
-            {/* manufacturer*/}
             <div>
-              <label htmlFor="sku" className="form-label">
-                Manufacturer
-              </label>
+              <label htmlFor="manufacturer" className="form-label">Manufacturer</label>
               <input
                 type="text"
                 id="manufacturer"
@@ -226,8 +220,6 @@ const ProductAdd = () => {
               />
             </div>
 
-            {/* Image URL */}
-            {/* Image Upload Toggle */}
             <div>
               <label className="form-label">Upload Image</label>
               <div className="flex items-center gap-2">
@@ -250,11 +242,8 @@ const ProductAdd = () => {
               </div>
             </div>
 
-            {/* Description */}
             <div className="md:col-span-2">
-              <label htmlFor="description" className="form-label">
-                Description
-              </label>
+              <label htmlFor="description" className="form-label">Description</label>
               <textarea
                 id="description"
                 name="description"
@@ -266,7 +255,6 @@ const ProductAdd = () => {
               ></textarea>
             </div>
 
-            {/* Requires Prescription */}
             <div className="md:col-span-2">
               <div className="flex items-center">
                 <input
@@ -278,7 +266,7 @@ const ProductAdd = () => {
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <label
-                  htmlFor="requiresPrescription"
+                  htmlFor="PrescriptionStatus"
                   className="ml-2 block text-sm text-gray-700"
                 >
                   This product requires a prescription
@@ -318,32 +306,43 @@ const ProductAdd = () => {
                 <div className="mt-2 space-y-2">
                   {formData.category && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">
-                        Category:
-                      </span>
+                      <span className="text-sm font-medium text-gray-500">Category:</span>
                       <span className="ml-2 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                        {categories.find((cat) => cat._id === formData.category)
-                          ?.name || "Unknown"}
+                        {categories.find((cat) => cat._id === formData.category)?.name || "Unknown"}
                       </span>
                     </div>
                   )}
 
                   {formData.price && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">
-                        Price:
-                      </span>
+                      <span className="text-sm font-medium text-gray-500">Price:</span>
                       <span className="ml-2 text-sm font-medium text-gray-900">
                         ₹{parseFloat(formData.price).toFixed(2)}
                       </span>
                     </div>
                   )}
 
+                  {formData.discount && (
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-500">Discount:</span>
+                      <span className="ml-2 text-sm font-medium text-gray-900">
+                        {formData.discount}%
+                      </span>
+                    </div>
+                  )}
+
+                  {discountedPrice && (
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-500">Discounted Price:</span>
+                      <span className="ml-2 text-sm font-semibold text-green-600">
+                        ₹{discountedPrice}
+                      </span>
+                    </div>
+                  )}
+
                   {formData.stock && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">
-                        Stock:
-                      </span>
+                      <span className="text-sm font-medium text-gray-500">Stock:</span>
                       <span className="ml-2 text-sm text-gray-900">
                         {formData.stock} units
                       </span>
@@ -352,9 +351,7 @@ const ProductAdd = () => {
 
                   {formData.manufacturer && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">
-                        Manufacturer:
-                      </span>
+                      <span className="text-sm font-medium text-gray-500">Manufacturer:</span>
                       <span className="ml-2 text-sm text-gray-900">
                         {formData.manufacturer}
                       </span>
@@ -382,7 +379,6 @@ const ProductAdd = () => {
           </div>
         )}
 
-        {/* Form actions */}
         <div className="flex justify-end space-x-4">
           <button
             type="button"
@@ -405,19 +401,8 @@ const ProductAdd = () => {
                   fill="none"
                   viewBox="0 0 24 24"
                 >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Saving...
               </span>

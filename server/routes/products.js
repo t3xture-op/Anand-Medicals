@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { getAllProducts,getProductById,createProduct,updateProduct,deleteProduct,getProductsByCat } from '../controllers/productController.js';
+import { getAllProducts,getProductById,createProduct,updateProduct,deleteProduct } from '../controllers/productController.js';
 import { uploadProduct } from '../middlewares/cloudinary.js';
 
 const upload = multer({ dest: "uploads/" });
@@ -23,9 +23,5 @@ productRouter.put('/edit/:id', uploadProduct.single('image'), updateProduct);
 
 // Delete product (admin only)
 productRouter.delete('/delete/:id',deleteProduct)
-
-
-//get product by category
-productRouter.get('/category/:id',getProductsByCat )
 
 export default productRouter;

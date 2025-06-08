@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   X,
 } from "lucide-react";
+import { ToastContainer, toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; 
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -31,6 +33,7 @@ const ProductList = () => {
       setProducts(data);
     } catch (err) {
       console.error("Error loading products:", err);
+      toast.error("Failed to load products");
     }
   };
 
@@ -42,6 +45,7 @@ const ProductList = () => {
       setProductCategories(data);
     } catch (err) {
       console.error("Error loading categories:", err);
+      toast.error("Failed to load categories");
     }
   };
 
@@ -57,10 +61,10 @@ const ProductList = () => {
         if (!res.ok) throw new Error("Delete failed");
         const updated = products.filter((p) => p._id !== id);
         setProducts(updated);
-        alert("Product deleted successfully");
+        toast.success("Product deleted successfully");
       } catch (err) {
         console.error("Error deleting product:", err);
-        alert("Error deleting product: " + err.message);
+        toast.error("Error deleting product: " + err.message);
       }
     }
   };
@@ -71,11 +75,21 @@ const ProductList = () => {
     setStockFilter("");
   };
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (selectedCategory === "" || product.category === selectedCategory)
-  );
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "" || product.category === selectedCategory;
+    const matchesStock =
+      stockFilter === ""
+        ? true
+        : stockFilter === "low"
+        ? product.stock <= 10 && product.stock > 0
+        : product.stock === 0;
+
+    return matchesSearch && matchesCategory && matchesStock;
+  });
 
   return (
     <div className="space-y-6 fade-in">
@@ -175,7 +189,7 @@ const ProductList = () => {
               >
                 <option value="">All Categories</option>
                 {productCategories.map((category) => (
-                  <option key={category.id} value={category.name}>
+                  <option key={category._id} value={category._id}>
                     {category.name}
                   </option>
                 ))}
@@ -218,6 +232,8 @@ const ProductList = () => {
               <th>Product</th>
               <th>Category</th>
               <th>Price</th>
+              <th>Discount</th>
+              <th>Discounted Price</th>
               <th>Stock</th>
               <th>MANUFACTURER</th>
               <th>Prescription</th>
@@ -248,6 +264,12 @@ const ProductList = () => {
                     </span>
                   </td>
                   <td>₹{product.price.toFixed(2)}</td>
+                  <td className="text-blue-600">
+                    {product.discount ? `${product.discount}%` : "0%"}
+                  </td>
+                  <td className="text-green-600">
+                    ₹{product.discount_price?.toFixed(2)}
+                  </td>
                   <td>
                     {product.stock <= 5 ? (
                       <div className="flex items-center text-red-600">
@@ -298,7 +320,7 @@ const ProductList = () => {
             ) : (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="9"
                   className="py-8 text-center text-sm text-gray-500"
                 >
                   No products found matching your criteria.
@@ -308,6 +330,7 @@ const ProductList = () => {
           </tbody>
         </table>
       </div>
+      
     </div>
   );
 };
