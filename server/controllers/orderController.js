@@ -44,7 +44,7 @@ export const getAllOrders = async (req, res) => {
     const orders = await Order.find({})
       .populate('user', 'name email')
       .populate('items.product', 'name price images requiresPrescription')
-      .populate('shippingAddress', 'addressLine1 city state postalCode')
+      .populate('shippingAddress', 'addressLine1 city state postalCode coordinates')
       .sort({ createdAt: -1 })
       .lean(); // Convert to plain JavaScript objects
 

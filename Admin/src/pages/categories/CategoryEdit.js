@@ -1,183 +1,242 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, FileEdit, Trash2, X } from 'lucide-react';
-import { toast, ToastContainer , Bounce } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Save, ArrowLeft, Trash2, Upload, X } from 'lucide-react';
 
-const CategoryList = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categories, setCategories] = useState([]);
-  const [filteredCategories, setFilteredCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
+const CategoryEdit = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [isImageCleared, setIsImageCleared] = useState(false); // NEW
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+  });
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    if (!id) return;
+    const fetchCategory = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/category');
-        if (!response.ok) throw new Error('Failed to fetch categories');
+        const response = await fetch(`http://localhost:5000/api/category/${id}`);
+        if (!response.ok) throw new Error('Category not found');
         const data = await response.json();
-        setCategories(data);
-        setFilteredCategories(data);
-      } catch (err) {
-        setError('Error loading categories');
-        toast.error('❌ Failed to load categories');
+        setFormData({
+          name: data.name || '',
+          description: data.description || '',
+        });
+
+        if (data.image && typeof data.image === 'string') {
+          setPreviewUrl(data.image); // Handle URL directly
+        }
+      } catch (error) {
+        console.error('Error fetching category:', error);
+        navigate('/category');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchCategories();
-  }, []);
+    fetchCategory();
+  }, [id, navigate]);
 
-  useEffect(() => {
-    const filtered = categories.filter(category =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredCategories(filtered);
-  }, [searchTerm, categories]);
-
-  const clearSearch = () => {
-    setSearchTerm('');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDelete = async (id) => {
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+      setFile(selected);
+      setPreviewUrl(URL.createObjectURL(selected));
+      setIsImageCleared(false); // Reset clear state
+    }
+  };
+
+  const handleClearImage = () => {
+    setFile(null);
+    setPreviewUrl('');
+    setIsImageCleared(true); // Signal backend to remove image
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('description', formData.description);
+      if (file) {
+        submitData.append('image', file);
+      }
+      if (isImageCleared) {
+        submitData.append('removeImage', 'true');
+      }
+
+      const response = await fetch(`http://localhost:5000/api/category/edit/${id}`, {
+        method: 'PUT',
+        body: submitData,
+      });
+
+      if (!response.ok) throw new Error('Failed to update category');
+      alert('Category updated successfully');
+      navigate('/category');
+    } catch (error) {
+      console.error('Error updating category:', error);
+      alert('Error updating category');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this category?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/category/delete/${id}`, {
+        const res = await fetch(`http://localhost:5000/api/category/delete/${id}`, {
           method: 'DELETE',
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Delete failed');
-        }
-
-        toast.success('🗑️ Category deleted successfully');
-        const updated = categories.filter(c => c._id !== id);
-        setCategories(updated);
-        setFilteredCategories(updated);
-      } catch (error) {
-        console.error('Error deleting category:', error);
-        toast.error('❌ Error deleting category: ' + error.message);
+        if (!res.ok) throw new Error('Delete failed');
+        alert('Category deleted successfully');
+        navigate('/category');
+      } catch (err) {
+        console.error('Delete error:', err);
+        alert('Error deleting category');
       }
     }
   };
 
-  return (
-    <div className="space-y-6 fade-in">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="text-xl font-semibold text-gray-800">Category Management</h1>
-        <Link to="/category/add" className="btn btn-primary flex items-center justify-center">
-          <Plus size={18} className="mr-1" />
-          Add New Category
-        </Link>
-      </div>
-
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative flex-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search size={18} className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search categories by name or description..."
-              className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          {searchTerm && (
-            <button
-              onClick={clearSearch}
-              className="flex items-center text-sm text-blue-600 hover:text-blue-500"
-            >
-              <X size={16} className="mr-1" />
-              Clear
-            </button>
-          )}
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-center">
+          <svg className="mx-auto h-12 w-12 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <p className="mt-4 text-lg font-medium text-gray-700">Loading category data...</p>
         </div>
       </div>
+    );
+  }
 
-      <div className="table-container">
-        {loading ? (
-          <div className="text-center py-10 text-gray-500">Loading categories...</div>
-        ) : error ? (
-          <div className="text-center py-10 text-red-500">{error}</div>
-        ) : filteredCategories.length > 0 ? (
-          <table className="table">
-            <thead className="table-header">
-              <tr>
-                <th className="table-header-cell">Category</th>
-                <th className="table-header-cell">Description</th>
-                <th className="table-header-cell">Image</th>
-                <th className="table-header-cell">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="table-body">
-              {filteredCategories.map((category) => (
-                <tr key={category._id} className="table-row">
-                  <td className="table-cell font-medium text-gray-900">{category.name}</td>
-                  <td className="table-cell text-gray-700">{category.description || '-'}</td>
-                  <td className="table-cell">
-                    {category.image ? (
-                      <img
-                        src={category.image}
-                        alt={category.name}
-                        className="h-10 w-10 rounded-md border object-cover object-center"
-                      />
-                    ) : (
-                      <span className="text-sm text-gray-500">No image</span>
-                    )}
-                  </td>
-                  <td className="table-cell">
-                    <div className="flex space-x-2">
-                      <Link
-                        to={`/category/edit/${category._id}`}
-                        className="rounded-md p-1 text-blue-600 hover:bg-blue-50 hover:text-blue-800"
-                        title="Edit"
-                      >
-                        <FileEdit size={18} />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(category._id)}
-                        className="rounded-md p-1 text-red-600 hover:bg-red-50 hover:text-red-800"
-                        title="Delete"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="text-center py-10 text-gray-500">
-            No categories found.{' '}
-            <Link to="/category/add" className="text-blue-600 hover:underline">Create one</Link>.
-          </div>
-        )}
+  return (
+    <div className="space-y-6 fade-in">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <button
+            onClick={() => navigate('/category')}
+            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-800">Edit Category</h1>
+        </div>
+        <button onClick={handleDelete} className="btn btn-danger flex items-center">
+          <Trash2 size={18} className="mr-2" />
+          Delete Category
+        </button>
       </div>
 
-      <ToastContainer
-              position="top-center"
-              autoClose={4000}
-              hideProgressBar={false}
-              closeOnClick
-              pauseOnHover
-              draggable
-              pauseOnFocusLoss
-              theme="light"
-              transition={Bounce}
-            />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-medium text-gray-800">Category Information</h2>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label htmlFor="name" className="form-label">Category Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="form-input"
+                placeholder="Enter category name"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label htmlFor="description" className="form-label">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows="4"
+                className="form-input"
+                placeholder="Enter category description"
+              ></textarea>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="form-label block mb-1">Image</label>
+
+              {previewUrl && (
+                <div className="mb-2 relative inline-block">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-32 h-32 rounded border object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleClearImage}
+                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    title="Clear Image"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              <label className="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded cursor-pointer text-sm font-medium">
+                <Upload className="w-4 h-4 mr-2" />
+                Choose Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={() => navigate('/category')}
+            className="btn btn-outline"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <span className="flex items-center">
+                <svg className="mr-2 h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Saving...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Save size={18} className="mr-2" />
+                Save Changes
+              </span>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
 
-export default CategoryList;
+export default CategoryEdit;

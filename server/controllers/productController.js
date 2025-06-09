@@ -161,3 +161,21 @@ export async function deleteProduct(req, res) {
     res.status(500).json({ message: 'Error deleting product', error: error.message });
   }
 }
+
+
+//get product by category id
+export async function getProductsByCat(req, res) {
+  try {
+    const id = req.params.id;
+
+    const products = await Product.find({ category: id });
+
+    if (!products || products.length === 0) {
+      return res.status(404).json({ message: "No products found for this category." });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching products by category", error: error.message });
+  }
+}

@@ -30,8 +30,26 @@ const categoryStorage = new CloudinaryStorage({
   },
 });
 
+const prescriptionStorage = new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder : 'prescription',
+    allowed_fromates: ['jpg','jpeg','png']
+  }
+})
+
+const userStorage = new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder : 'user',
+    allowed_fromates: ['jpg','jpeg','png']
+  }
+})
+
 // Middlewares for multer
 const uploadProduct = multer({ storage: productStorage });
 const uploadCategory = multer({ storage: categoryStorage });
+const uploadPrescription = multer({ storage: prescriptionStorage });
+const uploadUser= multer({ storage: userStorage });
 
-export { cloudinary, uploadProduct, uploadCategory };
+export { cloudinary, uploadProduct, uploadCategory, uploadPrescription ,uploadUser };

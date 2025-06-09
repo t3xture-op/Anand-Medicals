@@ -213,3 +213,36 @@ export async function resetPassword(req,res){
     res.status(500).json({ message: 'Error resetting password' });
   }
 }
+
+
+
+
+
+
+
+
+export async function getAllUsers(req, res) {
+  try {
+    // Only fetch users where role is 'user'
+    const users = await User.find({ role: 'user' });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+}
+
+
+//get user by id
+export async function getUsersId(req, res) {
+  try {
+  
+    const user = await User.findById(req.params.id);
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+}
