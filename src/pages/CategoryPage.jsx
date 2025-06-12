@@ -1,6 +1,7 @@
 import { useParams, Link, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useCartStore } from "../store/cartStore";
+import { AuthContext } from "../authContext"; // ✅ Import auth context
 
 export default function CategoryPage() {
   const { id } = useParams();
@@ -9,6 +10,7 @@ export default function CategoryPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const addToCart = useCartStore((state) => state.addToCart);
+  const { isLoggedIn } = useContext(AuthContext); // ✅ Use auth context
 
   useEffect(() => {
     const fetchCategoryProducts = async () => {
@@ -27,6 +29,16 @@ export default function CategoryPage() {
   }, [id]);
 
   const handleAddToCart = async (product) => {
+    if (!isLoggedIn) {
+      alert('Please login to add items to cart.');
+      return;
+    }
+
+    if (product.stock <= 0) {
+      alert('This product is out of stock.');
+      return;
+    }
+
     addToCart({
       _id: product._id,
       name: product.name,
@@ -96,14 +108,19 @@ export default function CategoryPage() {
                     </div>
                   )}
                 </div>
-                <div className="text-sm text-gray-700 whitespace-nowrap">
+                <div className={`text-sm ${product.stock === 0 ? 'text-red-500' : 'text-gray-700'}`}>
                   {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
                 </div>
               </div>
 
               <button
                 onClick={() => handleAddToCart(product)}
-                className="mt-4 w-full bg-green-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-green-700 transition"
+                disabled={product.stock === 0}
+                className={`mt-4 w-full text-sm font-medium py-2 px-4 rounded transition ${
+                  product.stock === 0
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
               >
                 Add to Cart
               </button>

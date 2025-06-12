@@ -1,262 +1,230 @@
-import React, { useState } from 'react';
-import { 
+import React, { useState, useEffect } from "react";
+import {
   Bell,
   Package,
   User,
-  Calendar,
   ShoppingBag,
   AlertTriangle,
   Check,
-  Clock,
-  X
-} from 'lucide-react';
-import { notifications } from '../utils/mockData';
+  X,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Notifications = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [filter, setFilter] = useState('all');
-  
-  // Get notifications based on filter
-  const filteredNotifications = notifications.filter(notification => {
-    if (filter === 'all') return true;
-    return notification.type === filter;
-  });
-  
-  // Get unread count
-  const unreadCount = notifications.filter(notification => !notification.isRead).length;
-  
-  // Get icon based on notification type
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'order':
-        return <ShoppingBag className="h-6 w-6 text-blue-500" />;
-      case 'user':
-        return <User className="h-6 w-6 text-green-500" />;
-      case 'prescription':
-        return <Package className="h-6 w-6 text-purple-500" />;
-      case 'stock':
-        return <AlertTriangle className="h-6 w-6 text-amber-500" />;
-      case 'payment':
-        return <Clock className="h-6 w-6 text-red-500" />;
-      default:
-        return <Bell className="h-6 w-6 text-gray-500" />;
+  const [notifications, setNotifications] = useState([]);
+  const [filter, setFilter] = useState("all");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/notifications");
+      const data = await res.json();
+      setNotifications(data);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
     }
   };
-  
-  // Format date for display
+
+  const filteredNotifications = notifications.filter((n) =>
+    filter === "all" ? true : n.type === filter
+  );
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   const formatDate = (dateString) => {
     const now = new Date();
     const date = new Date(dateString);
-    const diffMs = now - date;
-    const diffSec = Math.round(diffMs / 1000);
-    const diffMin = Math.round(diffSec / 60);
-    const diffHour = Math.round(diffMin / 60);
-    const diffDay = Math.round(diffHour / 24);
-    
-    if (diffSec < 60) {
-      return 'Just now';
-    } else if (diffMin < 60) {
-      return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
-    } else if (diffHour < 24) {
-      return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
-    } else if (diffDay < 7) {
-      return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
-    } else {
-      return date.toLocaleDateString();
+    const diff = now - date;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins} minute${mins > 1 ? "s" : ""} ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hour${hrs > 1 ? "s" : ""} ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getNotificationIcon = (type) => {
+    const icons = {
+      order: <ShoppingBag className="h-6 w-6 text-blue-500" />,
+      user: <User className="h-6 w-6 text-green-500" />,
+      prescription: <Package className="h-6 w-6 text-purple-500" />,
+      stock: <AlertTriangle className="h-6 w-6 text-amber-500" />,
+    };
+    return icons[type] || <Bell className="h-6 w-6 text-gray-500" />;
+  };
+
+  const markAllAsRead = async () => {
+    await fetch("http://localhost:5000/api/notifications/read-all", {
+      method: "PATCH",
+    });
+    fetchNotifications();
+  };
+
+  const markAsRead = async (_id) => {
+    await fetch(`http://localhost:5000/api/notifications/read/${_id}`, {
+      method: "PATCH",
+    });
+    fetchNotifications();
+  };
+
+  const clearAll = async () => {
+    if (window.confirm("Are you sure you want to clear all notifications?")) {
+      await fetch("http://localhost:5000/api/notifications/clear-all", {
+        method: "DELETE",
+      });
+      fetchNotifications();
     }
   };
-  
-  // Mark all as read (mock)
-  const markAllAsRead = () => {
-    alert('All notifications marked as read (mock)');
-    // In a real app, this would call an API to update the notification status
-  };
-  
-  // Mark single notification as read (mock)
-  const markAsRead = (id) => {
-    alert(`Notification #${id} marked as read (mock)`);
-    // In a real app, this would call an API to update the notification status
-  };
-  
-  // Clear all notifications (mock)
-  const clearAll = () => {
-    if (window.confirm('Are you sure you want to clear all notifications?')) {
-      alert('All notifications cleared (mock)');
-      // In a real app, this would call an API to clear notifications
+  const handleActionClick = (type, id) => {
+    console.log("Navigation Triggered:", { type, id });
+    if (!id) return alert("Missing target ID!");
+
+    switch (type) {
+      case "order":
+        navigate(`/orders/${id}`);
+        break;
+      case "user":
+        navigate(`/users/${id}`);
+        break;
+      case "prescription":
+        navigate(`/prescriptions/${id}`);
+        break;
+      case "stock":
+        navigate(`/products/edit/${id}`);
+        break;
+      default:
+        break;
     }
   };
-  
+
   return (
     <div className="space-y-6 fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-800">Notifications</h1>
-        
+
         <div className="flex items-center space-x-2">
           <button
             onClick={markAllAsRead}
-            className="flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            className="flex items-center rounded-md border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <Check size={16} className="mr-1" />
             Mark all as read
           </button>
-          
+
           <button
             onClick={clearAll}
-            className="flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            className="flex items-center rounded-md border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <X size={16} className="mr-1" />
             Clear all
           </button>
         </div>
       </div>
-      
-      {/* Notification filters */}
-      <div className="border-b border-gray-200">
-        <div className="flex items-center">
-          <button
-            onClick={() => setFilter('all')}
-            className={`relative inline-flex items-center border-b-2 px-4 py-2 text-sm font-medium ${
-              filter === 'all'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            }`}
-          >
-            All
-            {unreadCount > 0 && filter === 'all' && (
-              <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-          
-          <button
-            onClick={() => setFilter('order')}
-            className={`relative inline-flex items-center border-b-2 px-4 py-2 text-sm font-medium ${
-              filter === 'order'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            }`}
-          >
-            Orders
-          </button>
-          
-          <button
-            onClick={() => setFilter('user')}
-            className={`relative inline-flex items-center border-b-2 px-4 py-2 text-sm font-medium ${
-              filter === 'user'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            }`}
-          >
-            Users
-          </button>
-          
-          <button
-            onClick={() => setFilter('prescription')}
-            className={`relative inline-flex items-center border-b-2 px-4 py-2 text-sm font-medium ${
-              filter === 'prescription'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            }`}
-          >
-            Prescriptions
-          </button>
-          
-          <button
-            onClick={() => setFilter('stock')}
-            className={`relative inline-flex items-center border-b-2 px-4 py-2 text-sm font-medium ${
-              filter === 'stock'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            }`}
-          >
-            Stock
-          </button>
+
+      <div className="border-b">
+        <div className="flex">
+          {["all", "order", "user", "prescription", "stock"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
+              className={`relative px-4 py-2 text-sm font-medium border-b-2 ${
+                filter === type
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+              }`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+              {type === "all" && unreadCount > 0 && (
+                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
-      
-      {/* Notifications list */}
+
       <div className="space-y-4">
         {filteredNotifications.length > 0 ? (
-          filteredNotifications.map((notification) => (
-            <div 
-              key={notification.id} 
+          filteredNotifications.map((n) => (
+            <div
+              key={n._id}
               className={`rounded-lg border ${
-                notification.isRead ? 'bg-white' : 'bg-blue-50 border-blue-100'
-              } p-4 shadow-sm transition-all duration-200 hover:shadow-md`}
+                n.isRead ? "bg-white" : "bg-blue-50 border-blue-100"
+              } p-4 shadow-sm hover:shadow-md`}
             >
               <div className="flex">
-                <div className="mr-4 flex-shrink-0">
-                  {getNotificationIcon(notification.type)}
-                </div>
+                <div className="mr-4">{getNotificationIcon(n.type)}</div>
                 <div className="flex-1">
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between">
                     <div>
-                      <h3 className={`text-base font-medium ${
-                        notification.isRead ? 'text-gray-900' : 'text-blue-800'
-                      }`}>
-                        {notification.title}
+                      <h3
+                        className={`text-base font-medium ${
+                          n.isRead ? "text-gray-900" : "text-blue-800"
+                        }`}
+                      >
+                        {n.title}
                       </h3>
-                      <p className={`mt-1 text-sm ${
-                        notification.isRead ? 'text-gray-600' : 'text-blue-700'
-                      }`}>
-                        {notification.message}
+                      <p
+                        className={`mt-1 text-sm ${
+                          n.isRead ? "text-gray-600" : "text-blue-700"
+                        }`}
+                      >
+                        {n.message}
                       </p>
                     </div>
-                    <div className="ml-4 flex flex-shrink-0 flex-col items-end">
-                      <span className="text-xs text-gray-500">
-                        {formatDate(notification.createdAt)}
-                      </span>
-                      
-                      {!notification.isRead && (
-                        <button
-                          onClick={() => markAsRead(notification.id)}
-                          className="mt-2 text-xs font-medium text-blue-600 hover:text-blue-500"
-                        >
-                          Mark as read
-                        </button>
+                    <div className="text-xs text-gray-500 text-right">
+                      {formatDate(n.createdAt)}
+                      {!n.isRead && (
+                        <div>
+                          <button
+                            onClick={() => markAsRead(n._id)}
+                            className="mt-1 text-xs text-blue-600 hover:text-blue-500"
+                          >
+                            Mark as read
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
-                  
-                  {/* Action buttons based on notification type */}
-                  <div className="mt-3 flex items-center justify-end space-x-2">
-                    {notification.type === 'order' && (
-                      <button className="rounded-md bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
-                        View Order
-                      </button>
-                    )}
-                    
-                    {notification.type === 'user' && (
-                      <button className="rounded-md bg-green-50 px-2.5 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100">
-                        View User
-                      </button>
-                    )}
-                    
-                    {notification.type === 'prescription' && (
-                      <button className="rounded-md bg-purple-50 px-2.5 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100">
-                        Review Prescription
-                      </button>
-                    )}
-                    
-                    {notification.type === 'stock' && (
-                      <button className="rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100">
-                        Update Stock
-                      </button>
-                    )}
-                    
-                    {notification.type === 'payment' && (
-                      <button className="rounded-md bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100">
-                        View Payment
-                      </button>
-                    )}
+
+                  {/* Action Button */}
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={() => handleActionClick(n.type, n.targetId)} // ✅ Pass the id too
+                      className={`rounded-md px-3 py-1.5 text-xs font-medium hover:opacity-90 ${
+                        n.type === "order"
+                          ? "bg-blue-100 text-blue-700"
+                          : n.type === "user"
+                          ? "bg-green-100 text-green-700"
+                          : n.type === "prescription"
+                          ? "bg-purple-100 text-purple-700"
+                          : n.type === "stock"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {n.type === "stock"
+                        ? "Update Stock"
+                        : n.type === "prescription"
+                        ? "Review Prescription"
+                        : `View ${
+                            n.type.charAt(0).toUpperCase() + n.type.slice(1)
+                          }`}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <div className="rounded-lg border p-8 text-center shadow-sm">
             <Bell size={48} className="mx-auto text-gray-400" />
             <p className="mt-4 text-gray-500">No notifications found.</p>
           </div>

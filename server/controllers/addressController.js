@@ -3,7 +3,7 @@ import Address from "../models/Address.js";
 //add address
 export const addAddress = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId =  req.user._id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized: User ID missing" });
     }
@@ -44,13 +44,13 @@ export const addAddress = async (req, res) => {
 
 export const getUserAddresses = async (req, res) => {
   try {
-    if (!req.userId) {
+    if (! req.user._id) {
       return res
         .status(401)
         .json({ message: "Unauthorized: No user ID found" });
     }
 
-    const addresses = await Address.find({ user: req.userId });
+    const addresses = await Address.find({ user:  req.user._id });
 
     res.status(200).json({ addresses });
   } catch (error) {
@@ -67,7 +67,7 @@ export const getUserAddresses = async (req, res) => {
 export async function changeDefaultAddress(req, res) {
   try {
     const addressId = req.params.id;
-    const userId = req.userId; 
+    const userId = req.user._id  
 
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
@@ -97,7 +97,7 @@ export async function changeDefaultAddress(req, res) {
 //get default address of a user
 export async function getDefaultAddress(req, res) {
   try {
-    const userId = req.userId; // assuming auth middleware sets this
+    const userId = req.user._id  
 
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });

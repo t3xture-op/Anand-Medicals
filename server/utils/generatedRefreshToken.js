@@ -15,7 +15,7 @@ const generatedRefreshToken = async(userId) =>{
             refresh_token:token
         }
     )
-    return token
+    return updateRefershToken
 }
 
 export default generatedRefreshToken

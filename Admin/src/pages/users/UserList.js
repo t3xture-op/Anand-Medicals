@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link ,} from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -16,6 +16,7 @@ const UserList = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  
 
   // Fetch users from backend
   useEffect(() => {
@@ -213,7 +214,7 @@ const UserList = () => {
             <div key={user._id} className="card hover:shadow-md">
               <div className="flex items-start space-x-4">
                 <img
-                  src={user.avatar || 'https://via.placeholder.com/100?text=User'}
+                  src={user.avatar || './user.jpg'}
                   alt={user.name}
                   className="h-12 w-12 rounded-full"
                   onError={(e) => {

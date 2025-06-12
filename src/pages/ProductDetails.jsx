@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 import { ShoppingCart } from 'lucide-react';
+import { AuthContext } from '../authContext';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-
   const addToCart = useCartStore((state) => state.addToCart);
+  const { isLoggedIn } = useContext(AuthContext); // ✅ auth check
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -25,6 +26,16 @@ export default function ProductDetail() {
   }, [id]);
 
   const handleAddToCart = async () => {
+    if (!isLoggedIn) {
+      alert('Please login to add items to cart.');
+      return;
+    }
+
+    if (product.stock <= 0) {
+      alert('This product is out of stock.');
+      return;
+    }
+
     addToCart({
       _id: product._id,
       name: product.name,
@@ -92,8 +103,12 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <p className="text-sm text-gray-500">{product.stock} items in stock</p>
+          {/* Stock display */}
+          <p className={`text-sm ${product.stock === 0 ? 'text-red-500' : 'text-gray-500'}`}>
+            {product.stock === 0 ? 'Out of stock' : `${product.stock} items in stock`}
+          </p>
 
+          {/* Quantity selector */}
           <div className="flex items-center space-x-4 mt-4">
             <label className="text-sm font-medium text-gray-700">Quantity:</label>
             <input
@@ -101,6 +116,7 @@ export default function ProductDetail() {
               min="1"
               max={product.stock}
               value={quantity}
+              disabled={product.stock === 0}
               onChange={(e) =>
                 setQuantity(Math.min(product.stock, Math.max(1, Number(e.target.value))))
               }
@@ -108,9 +124,15 @@ export default function ProductDetail() {
             />
           </div>
 
+          {/* Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            className="mt-6 bg-green-700 text-white py-2 px-6 rounded-md hover:bg-green-800 flex items-center space-x-2"
+            disabled={product.stock === 0}
+            className={`mt-6 flex items-center space-x-2 py-2 px-6 rounded-md text-white font-medium ${
+              product.stock === 0
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-700 hover:bg-green-800'
+            }`}
           >
             <ShoppingCart className="w-4 h-4" />
             <span>Add to Cart</span>
