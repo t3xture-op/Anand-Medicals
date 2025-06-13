@@ -114,6 +114,9 @@ export default function Products() {
                       <span className="text-green-700 font-bold text-lg">
                         ₹{product.discount_price}
                       </span>
+                      <span className="text-gray-500 line-through text-lg">
+              ₹{product.price}
+            </span>
                       {product.discount > 0 && (
                         <span className="text-sm text-red-500 font-semibold">
                           {product.discount}% off

@@ -11,6 +11,7 @@ import categoryRoutes from './routes/category.js'
 import cartRoutes from './routes/cart.js'
 import addressRoutes from './routes/address.js';
 import cookieParser from 'cookie-parser';
+import offerRoutes from './routes/offer.js';
 
 dotenv.config();
 
@@ -49,6 +50,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/category',categoryRoutes);
 app.use('/api/cart',cartRoutes)
 app.use('/api/address',addressRoutes)
+app.use('/api/offer', offerRoutes);
+
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
