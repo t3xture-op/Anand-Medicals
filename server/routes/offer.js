@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 router.post('/', addOffer);
-router.put('/:id', editOffer);
+router.put('/edit/:id', editOffer);
 router.delete('/:id', deleteOffer); // ✅ delete route
 router.get('/', getAllOffers);
 
