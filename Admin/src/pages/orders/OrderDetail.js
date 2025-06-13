@@ -217,8 +217,8 @@ const OrderDetail = () => {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
+            disabled={isUpdatingStatus || order.status === "cancelled"}
             className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            disabled={isUpdatingStatus}
           >
             <option value="pending">Pending</option>
             <option value="processing">Processing</option>
@@ -229,7 +229,11 @@ const OrderDetail = () => {
 
           <button
             onClick={handleStatusUpdate}
-            disabled={selectedStatus === order.status || isUpdatingStatus}
+            disabled={
+              selectedStatus === order.status ||
+              isUpdatingStatus ||
+              order.status === "cancelled"
+            }
             className={`btn btn-primary ${
               selectedStatus === order.status || isUpdatingStatus
                 ? "opacity-50 cursor-not-allowed"
@@ -238,6 +242,7 @@ const OrderDetail = () => {
           >
             {isUpdatingStatus ? "Updating..." : "Update Status"}
           </button>
+          {/* Removed stray // ... comment here */}
         </div>
       </div>
 

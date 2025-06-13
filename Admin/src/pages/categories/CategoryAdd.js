@@ -73,7 +73,7 @@ const CategoryAdd = () => {
     <div className="space-y-6 fade-in">
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate("/categories")}
+          onClick={() => navigate("/category")}
           className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
         >
           <ArrowLeft size={20} />
