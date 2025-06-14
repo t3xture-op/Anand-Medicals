@@ -102,57 +102,54 @@ export default function Home() {
       </div>
 
       {/* Offers */}
-      {offers.length > 0 && (
-        <div className="max-w-7xl mx-auto  px-4 sm:px-6 lg:px-8 py-10">
-          <h1 className="font-bold text-gray-900 text-2xl pb-4">
-            Offers & Discounts
-          </h1>
-          <div className="bg-white p-6 rounded-xl shadow">
-            <div className="space-y-6">
-              {offers.map((offer) => (
-                <div
-                  key={offer._id}
-                  className="bg-white border rounded-lg shadow-sm p-6 mb-8"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                      {offer.offerName}
-                    </h2>
-                    <span className="inline-block bg-red-100 text-red-600 text-sm font-semibold px-3 py-1 rounded">
-                      {offer.discount}% OFF
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    {offer.products.map((productId) => (
-                      <div
-                        key={productId}
-                        className="border rounded-lg p-3 shadow-sm hover:shadow-md transition"
-                      >
-                        <img
-                          src={productId.image}
-                          alt={productId.name}
-                          className="w-full h-32 object-cover rounded mb-2"
-                        />
-                        <h4 className="text-sm font-medium text-gray-800">
-                          {productId.name}
-                        </h4>
-                      </div>
-                    ))}
-                  </div>
-
-                  <p className="text-gray-600 text-sm mb-2">
-                    {offer.description}
-                  </p>
-                  <p className="text-gray-500 text-xs italic">
-                    Ends on {new Date(offer.endDate).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </div>
+{offers.length > 0 && (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 className="font-bold text-gray-900 text-2xl pb-4">
+      Offers & Discounts
+    </h1>
+    <div className="bg-white p-6 rounded-xl shadow space-y-8">
+      {offers.map((offer) => (
+        <div
+          key={offer._id}
+          className="bg-white border rounded-lg shadow-sm p-6"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">
+              {offer.offerName}
+            </h2>
+            <span className="inline-block bg-red-100 text-red-600 text-sm font-semibold px-3 py-1 rounded">
+              {offer.discount}% OFF
+            </span>
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            {offer.products.map((product) => (
+              <div
+                key={product._id}
+                className="border rounded-lg p-3 shadow-sm hover:shadow-md transition"
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-32 object-cover rounded mb-2"
+                />
+                <h4 className="text-sm font-medium text-gray-800">
+                  {product.name}
+                </h4>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-gray-600 text-sm mb-2">{offer.description}</p>
+          <p className="text-gray-500 text-xs italic">
+            Ends on {new Date(offer.endDate).toLocaleDateString()}
+          </p>
         </div>
-      )}
+      ))}
+    </div>
+  </div>
+)}
+
 
       {/* Carousel (dynamic banners) */}
       {banners.length > 0 && (
