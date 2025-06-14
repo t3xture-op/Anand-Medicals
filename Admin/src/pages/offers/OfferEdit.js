@@ -1,54 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Save, ArrowLeft } from "lucide-react";
 
 function OfferEdit() {
-  const { id } = useParams(); // Offer ID from URL
+  const { id } = useParams();
   const navigate = useNavigate();
-
-  const [offerName, setOfferName] = useState('');
-  const [description, setDescription] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [status, setStatus] = useState('active');
-  const [products, setProducts] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [offerName, setOfferName] = useState("");
+  const [description, setDescription] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [status, setStatus] = useState("active");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [productPreview, setProductPreview] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+
+  // Fetch all products
+  useEffect(() => {
+    fetch("http://localhost:5000/api/products")
+      .then((res) => res.json())
+      .then((data) => setAllProducts(data))
+      .catch((err) => console.error("Error fetching products:", err));
+  }, []);
 
   // Fetch offer data
   useEffect(() => {
     fetch(`http://localhost:5000/api/offer/${id}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setOfferName(data.offerName);
         setDescription(data.description);
         setDiscount(data.discount);
         setStartDate(data.startDate?.substring(0, 10));
         setEndDate(data.endDate?.substring(0, 10));
         setStatus(data.status);
-        setSelectedProducts(data.products || []);
-      })
-      .catch(err => console.error('Error loading offer:', err));
-  }, [id]);
 
-  // Fetch product list
-  useEffect(() => {
-    fetch('http://localhost:5000/api/products')
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.error('Error fetching products:', err));
-  }, []);
+        if (data.products.length && typeof data.products[0] === "object") {
+          setSelectedProducts(data.products.map((p) => p._id));
+          setProductPreview(data.products);
+        } else {
+          setSelectedProducts(data.products);
+          setProductPreview(
+            allProducts.filter((p) => data.products.includes(p._id))
+          );
+        }
+      })
+      .catch((err) => console.error("Error loading offer:", err));
+  }, [id, allProducts]);
 
   const handleCheckboxChange = (productId) => {
-    setSelectedProducts(prev =>
+    setSelectedProducts((prev) =>
       prev.includes(productId)
-        ? prev.filter(id => id !== productId)
+        ? prev.filter((id) => id !== productId)
         : [...prev, productId]
     );
   };
 
   const handleUpdate = async () => {
+    if (!offerName || !discount || !startDate || !endDate || selectedProducts.length === 0) {
+      alert("Please fill in all fields and select at least one product.");
+      return;
+    }
+
     const updatedOffer = {
       offerName,
       description,
@@ -56,146 +71,223 @@ function OfferEdit() {
       startDate,
       endDate,
       status,
-      products: selectedProducts
+      products: selectedProducts,
     };
 
+    setIsSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/offer/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`http://localhost:5000/api/offer/edit/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedOffer),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        alert('Offer updated successfully!');
-        navigate('/offers');
+        alert("Offer updated successfully!");
+        navigate("/offers");
       } else {
         alert(`Update failed: ${result.message}`);
       }
     } catch (err) {
-      console.error('Error updating offer:', err);
-      alert('Something went wrong. Please try again.');
+      console.error("Error updating offer:", err);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const filteredProducts = products.filter((p) =>
+  const filteredProducts = allProducts.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <div className="flex items-center gap-2 mb-4">
-        <ArrowLeft
-          className="cursor-pointer text-gray-600 hover:text-gray-900"
-          size={24}
-          onClick={() => navigate('/offers')}
-        />
-        <h2 className="text-xl font-bold">Edit Offer</h2>
-      </div>
-
-      <input
-        type="text"
-        placeholder="Offer Name"
-        value={offerName}
-        onChange={(e) => setOfferName(e.target.value)}
-        className="border p-2 w-full mb-2"
-      />
-      <textarea
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="border p-2 w-full mb-2"
-      />
-      <input
-        type="number"
-        placeholder="Discount (%)"
-        value={discount}
-        onChange={(e) => setDiscount(e.target.value)}
-        className="border p-2 w-full mb-2"
-      />
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        className="border p-2 w-full mb-2"
-      />
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        className="border p-2 w-full mb-2"
-      />
-
-      <select
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-        className="border p-2 w-full mb-4"
-      >
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
-
-      <input
-        type="text"
-        placeholder="Search products..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="border p-2 w-full mb-2"
-      />
-
-      <div className="border p-2 max-h-56 overflow-y-scroll">
-        {filteredProducts.map((product) => (
-          <div key={product._id} className="flex items-center mb-1">
-            <input
-              type="checkbox"
-              checked={selectedProducts.includes(product._id)}
-              onChange={() => handleCheckboxChange(product._id)}
-              className="mr-2"
-            />
-            {product.name}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 bg-blue-50 p-4 rounded">
-        <h3 className="font-semibold text-blue-700 mb-2">Offer Preview</h3>
-        <p><strong>Name:</strong> {offerName}</p>
-        <p><strong>Description:</strong> {description}</p>
-        <p><strong>Discount:</strong> {discount}%</p>
-        <p><strong>Start Date:</strong> {startDate}</p>
-        <p><strong>End Date:</strong> {endDate}</p>
-        <p><strong>Status:</strong> {status}</p>
-        <p><strong>Selected Products:</strong></p>
-        <div className="flex flex-wrap gap-4 mt-2">
-          {products
-            .filter(p => selectedProducts.includes(p._id))
-            .map(p => (
-              <div key={p._id} className="text-center w-28">
-                <img src={p.image} alt={p.name} className="w-full h-20 object-contain" />
-                <p className="text-sm">{p.name}</p>
-              </div>
-            ))}
+    <div className="space-y-6 fade-in">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <button
+            onClick={() => navigate("/offers")}
+            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-800">Edit Offer</h1>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="mt-6 flex gap-4">
-        <button
-          onClick={handleUpdate}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded"
-        >
-          Update Offer
-        </button>
-        <button
-          onClick={() => navigate("/offers")}
-          className="bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-2 px-6 rounded"
-        >
-          Cancel
-        </button>
+      <div className="space-y-6">
+        {/* Offer Information */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-medium text-gray-800">Offer Information</h2>
+          
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="form-label">Offer Name</label>
+              <input
+                type="text"
+                value={offerName}
+                onChange={(e) => setOfferName(e.target.value)}
+                className="form-input"
+                placeholder="Enter offer name"
+              />
+            </div>
+            
+            <div>
+              <label className="form-label">Discount (%)</label>
+              <input
+                type="number"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                className="form-input"
+                placeholder="0%"
+              />
+            </div>
+            
+            <div>
+              <label className="form-label">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="form-input"
+              />
+            </div>
+            
+            <div>
+              <label className="form-label">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="form-input"
+              />
+            </div>
+            
+            <div>
+              <label className="form-label">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="form-input"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            
+            <div className="md:col-span-2">
+              <label className="form-label">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows="4"
+                className="form-input"
+                placeholder="Enter offer description"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Selection */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-medium text-gray-800">Select Products</h2>
+          
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="form-input mb-4 w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          
+          <div className="max-h-60 overflow-y-auto space-y-2">
+            {filteredProducts.map((product) => (
+              <div key={product._id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.includes(product._id)}
+                  onChange={() => handleCheckboxChange(product._id)}
+                />
+                <label className="text-sm text-gray-700">{product.name}</label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Preview Section */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-medium text-gray-800">Offer Preview</h2>
+          
+          <div className="space-y-3">
+            <div><strong>Offer Name:</strong> {offerName || 'N/A'}</div>
+            <div><strong>Description:</strong> {description || 'N/A'}</div>
+            <div><strong>Discount:</strong> {discount || 0}%</div>
+            <div><strong>Start Date:</strong> {startDate || 'N/A'}</div>
+            <div><strong>End Date:</strong> {endDate || 'N/A'}</div>
+            <div><strong>Status:</strong> {status}</div>
+            <div>
+              <strong>Selected Products:</strong>
+              <ul className="ml-5 list-disc">
+                {selectedProducts.length === 0 
+                  ? <li>No products selected</li>
+                  : selectedProducts.map((id) => {
+                      const prod = allProducts.find((p) => p._id === id);
+                      return prod ? <li key={id}>{prod.name}</li> : null;
+                    })
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4">
+          <button
+            onClick={() => navigate("/offers")}
+            className="btn btn-outline"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleUpdate}
+            className="btn btn-primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center">
+                <svg
+                  className="mr-2 h-4 w-4 animate-spin text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 
+                      1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Saving...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Save size={18} className="mr-2" />
+                Update Offer
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -23,18 +23,29 @@ const RecentActivity = ({ activities }) => {
     }
   };
 
+  const formatDateTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  };
+
+  if (!activities || activities.length === 0) {
+    return <p className="text-sm text-gray-500">No recent activity found.</p>;
+  }
+
   return (
     <div className="space-y-4">
       {activities.map((activity) => (
-        <div key={activity.id} className="flex items-start">
+        <div key={activity._id} className="flex items-start">
           <div className="mr-3 flex-shrink-0 rounded-full bg-gray-100 p-2">
             {getActivityIcon(activity.type)}
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-800">{activity.action}</p>
-            <p className="text-xs text-gray-500">
-              {activity.time} • {activity.date}
-            </p>
+            <p className="text-sm font-medium text-gray-800">{activity.title}</p>
+            <p className="text-xs text-gray-500">{activity.message}</p>
+            <p className="text-xs text-gray-400">{formatDateTime(activity.createdAt)}</p>
           </div>
         </div>
       ))}

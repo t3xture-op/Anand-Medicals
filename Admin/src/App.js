@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
+import { Toaster } from 'sonner';
 
 // Pages
 import Login from './pages/Login';
@@ -19,9 +20,17 @@ import PrescriptionList from './pages/prescriptions/PrescriptionList';
 import PrescriptionDetail from './pages/prescriptions/PrescriptionDetail';
 import OfferList from './pages/offers/OfferList';
 import OfferAdd from './pages/offers/OfferAdd';
+import OfferEdit from './pages/offers/OfferEdit'
 import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
 import Layout from './components/layout/Layout';
+import BannerList from './pages/banners/BannerList';
+import BannerAdd from './pages/banners/BannerAdd';
+import SubCategoryList from './pages/subcategories/SubCategoryList'
+import SubCategoryEdit from './pages/subcategories/subCategoryEdit'
+import SubCategoryAdd from './pages/subcategories/subCategoryAdd';
+import MyAccount from './pages/MyAccount'
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -38,6 +47,8 @@ function App() {
   const { isAuthenticated } = useContext(AuthContext);
   
   return (
+    <>
+     <Toaster richColors position="top-center" />
     <Router>
       <Routes>
         <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
@@ -49,6 +60,8 @@ function App() {
         }>
           <Route index element={<Dashboard />} />
           
+          <Route path="my-account" element={<MyAccount />} />
+          
           {/* Product Routes */}
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<ProductAdd />} />
@@ -58,6 +71,11 @@ function App() {
           <Route path="category" element={<CategoryList />} />
           <Route path="category/add" element={<CategoryAdd />} />
           <Route path="category/edit/:id" element={<CategoryEdit />} />
+
+          {/* sub category Routes */}
+          <Route path="sub-category" element={<SubCategoryList />} />
+          <Route path="sub-category/add" element={<SubCategoryAdd />} />
+          <Route path="sub-category/edit/:id" element={<SubCategoryEdit />} />
           
           {/* Order Routes */}
           <Route path="orders" element={<OrderList />} />
@@ -74,6 +92,12 @@ function App() {
           {/* Offer Routes */}
           <Route path="offers" element={<OfferList />} />
           <Route path="offers/add" element={<OfferAdd />} />
+          <Route path="offers/edit/:id" element={<OfferEdit />} />
+
+             {/* banner Routes */}
+          <Route path="banner" element={<BannerList/>} />
+          <Route path="banner/add" element={<BannerAdd />} />
+          
           
           {/* Other Routes */}
           <Route path="reports" element={<Reports />} />
@@ -81,6 +105,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
+    </>
   );
 }
 

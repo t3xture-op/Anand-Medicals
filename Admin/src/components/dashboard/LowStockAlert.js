@@ -1,18 +1,50 @@
-import React from 'react';
-import { products } from '../../utils/mockData';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const LowStockAlert = () => {
-  // Filter products with low stock (less than or equal to 10)
-  const lowStockProducts = products
-    .filter(product => product.stock <= 10)
-    .slice(0, 3); // Only show 3 for the dashboard
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLowStock = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/notifications', {
+          credentials: 'include',
+        });
+        const data = await res.json();
+
+        // Filter low stock notifications
+        const lowStock = data
+          .filter(n => n.type?.toLowerCase() === 'stock' && n.product)
+          .map(n => ({
+            _id: n.product._id,
+            name: n.product.name,
+            image: n.product.image,
+            stock: n.product.stock,
+            manufacturer: n.product.manufacturer,
+          }))
+          .slice(0, 3);
+
+        setLowStockProducts(lowStock);
+      } catch (err) {
+        console.error('Failed to fetch low stock alerts:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLowStock();
+  }, []);
+
+  if (loading) {
+    return <p className="text-sm text-gray-400">Loading low stock alerts...</p>;
+  }
 
   return (
     <div className="space-y-3">
       {lowStockProducts.length > 0 ? (
         lowStockProducts.map((product) => (
-          <div key={product.id} className="flex items-center justify-between">
+          <div key={product._id} className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                 <img
@@ -23,11 +55,11 @@ const LowStockAlert = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-800">{product.name}</p>
-                <p className="text-xs text-gray-500">SKU: {product.sku}</p>
+                <p className="text-xs text-gray-500">Manufacturer: {product.manufacturer}</p>
               </div>
             </div>
             <div className="text-right">
-              <span 
+              <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   product.stock <= 5 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
                 }`}
@@ -38,7 +70,7 @@ const LowStockAlert = () => {
           </div>
         ))
       ) : (
-        <p className="text-sm text-gray-500">No products with low stock!</p>
+        <p className="text-sm text-gray-500">All products are well stocked!</p>
       )}
     </div>
   );

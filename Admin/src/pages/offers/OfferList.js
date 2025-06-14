@@ -178,7 +178,7 @@ const OfferList = () => {
                   </button>
 
                   <Link
-                    to={`/offers/edit${offer._id}`}
+                    to={`/offers/edit/${offer._id}`}
                     className="rounded-md p-1 text-blue-600 hover:bg-blue-50 hover:text-blue-800"
                     title="Edit Offer"
                     aria-label="Edit Offer"

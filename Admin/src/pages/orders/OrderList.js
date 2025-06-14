@@ -20,47 +20,44 @@ const OrderList = () => {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [showFilters, setShowFilters] = useState(false);
   
-  // In your OrderList component
-useEffect(() => {
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const token = localStorage.getItem('accessToken') || 
-                   document.cookie.split('; ').find(row => row.startsWith('accessToken='))?.split('=')[1];
-      
-      const response = await fetch('http://localhost:5000/api/orders', {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        credentials: 'include' // If using cookies
-      });
-      
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          // Handle unauthorized/forbidden (redirect to login)
-          window.location.href = '/login';
-          return;
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const token = localStorage.getItem('accessToken') || 
+                     document.cookie.split('; ').find(row => row.startsWith('accessToken='))?.split('=')[1];
+        
+        const response = await fetch('http://localhost:5000/api/orders', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            window.location.href = '/login';
+            return;
+          }
+          throw new Error('Failed to fetch orders');
         }
-        throw new Error('Failed to fetch orders');
+        
+        const data = await response.json();
+        setOrders(data);
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError(err.message || 'Failed to fetch orders. Please try again later.');
+      } finally {
+        setLoading(false);
       }
-      
-      const data = await response.json();
-      setOrders(data);
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err.message || 'Failed to fetch orders. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchOrders();
-}, []);
+    fetchOrders();
+  }, []);
 
-  // Filter orders
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,7 +77,7 @@ useEffect(() => {
       const orderDate = new Date(order.orderDate);
       const fromDate = new Date(dateRange.from);
       const toDate = new Date(dateRange.to);
-      toDate.setHours(23, 59, 59); // Include the entire "to" day
+      toDate.setHours(23, 59, 59);
       
       matchesDate = orderDate >= fromDate && orderDate <= toDate;
     }
@@ -88,7 +85,6 @@ useEffect(() => {
     return matchesSearch && matchesStatus && matchesPayment && matchesPrescription && matchesDate;
   });
 
-  // Get status badge color
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
@@ -106,7 +102,6 @@ useEffect(() => {
     }
   };
 
-  // Get payment status badge color
   const getPaymentBadge = (status) => {
     switch (status) {
       case 'completed':
@@ -122,7 +117,6 @@ useEffect(() => {
     }
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
@@ -131,7 +125,6 @@ useEffect(() => {
     setDateRange({ from: '', to: '' });
   };
 
-  // Format date for display
   const formatDate = (dateString) => {
     const options = { 
       year: 'numeric', 
@@ -399,6 +392,7 @@ useEffect(() => {
         <table className="table">
           <thead className="table-header">
             <tr>
+              <th className="table-header-cell w-12 text-center">S.No.</th>
               <th className="table-header-cell">Order Number</th>
               <th className="table-header-cell">Customer</th>
               <th className="table-header-cell">Date</th>
@@ -411,8 +405,9 @@ useEffect(() => {
           </thead>
           <tbody className="table-body">
             {filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
+              filteredOrders.map((order, index) => (
                 <tr key={order.id} className="table-row">
+                  <td className="table-cell text-center font-medium">{index + 1}</td>
                   <td className="table-cell font-medium">{order.orderNumber}</td>
                   <td className="table-cell">{order.customerName}</td>
                   <td className="table-cell">{formatDate(order.orderDate)}</td>
@@ -462,7 +457,7 @@ useEffect(() => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="px-6 py-8 text-center text-sm text-gray-500">
+                <td colSpan="9" className="px-6 py-8 text-center text-sm text-gray-500">
                   {orders.length === 0 ? 'No orders found.' : 'No orders match your criteria.'}
                 </td>
               </tr>

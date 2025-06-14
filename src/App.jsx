@@ -18,6 +18,8 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import Feedback from './pages/Feedback';
 import Orders from './pages/Orders';
 import ResetPassword from './pages/ResetPassword'
+import MyAccount from './pages/MyAccount';
+import SubCategoryProducts from './pages/SubCategoryProducts';
 
 function App() {
   return (
@@ -30,10 +32,12 @@ function App() {
           <Route path="/register" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/my-account" element={<MyAccount />} />
           <Route path="/products" element={<Products />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/category/:id" element={<CategoryPage />} />
+          <Route path="/category/:id" element={<CategoryPage />} />    
+          <Route path="/subcategory/:id" element={<SubCategoryProducts />} />
           <Route path="/upload-prescription" element={<UploadPrescription />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/cart/delivery" element={<DeliveryAddress />} />

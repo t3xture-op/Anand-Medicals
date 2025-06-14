@@ -2,6 +2,7 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
+import { notificationEmitter } from "../routes/notification.js";
 
 // Get all orders of a user
 export async function getAllOrdersOfUser(req, res) {
@@ -111,13 +112,16 @@ export async function createOrder(req, res) {
         { new: true }
       );
 
-      if (product.stock <= 5) {
-        await Notification.create({
+      if (product.stock <= 10) {
+        const notification = new Notification({
           title: "Low Stock Alert",
           message: `${product.name} is running low on stock.`,
           type: "stock",
           targetId: product._id, // <- required field
         });
+        const savedNotification = await notification.save();
+
+        notificationEmitter.emit("newNotif", savedNotification);
       }
     }
 
@@ -133,12 +137,17 @@ export async function createOrder(req, res) {
 
     await order.save();
 
-    await Notification.create({
-      title: "New Order Created",
-      message: `Order #${order._id} has been placed.`,
+    const notification = new Notification({
+      title: "New Order Received",
+      message: `Order #${order._id} has been placed successfully.`,
       type: "order",
       targetId: order._id,
     });
+
+    const savedNotification = await notification.save();
+
+    // 3. Emit it to SSE stream
+    notificationEmitter.emit("newNotif", savedNotification);
 
     res.status(201).json(order);
   } catch (error) {

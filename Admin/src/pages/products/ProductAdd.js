@@ -9,10 +9,12 @@ const ProductAdd = () => {
   const [categories, setCategories] = useState([]);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [subcategories, setSubcategories] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
     category: "",
+    subcategory: "", // NEW
     price: "",
     discount: "",
     stock: "",
@@ -25,12 +27,22 @@ const ProductAdd = () => {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch("http://localhost:5000/api/category");
-        if (!response.ok) throw new Error("Failed to fetch categories");
-        const data = await response.json();
-        setCategories(data);
+        const [catRes, subcatRes] = await Promise.all([
+          fetch("http://localhost:5000/api/category"),
+          fetch("http://localhost:5000/api/subcategory"), // NEW
+        ]);
+
+        if (!catRes.ok || !subcatRes.ok) throw new Error("Failed to fetch");
+
+        const [catData, subcatData] = await Promise.all([
+          catRes.json(),
+          subcatRes.json(),
+        ]);
+
+        setCategories(catData);
+        setSubcategories(subcatData); // NEW
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Error fetching categories or subcategories:", error);
       }
     }
 
@@ -127,7 +139,9 @@ const ProductAdd = () => {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="name" className="form-label">Product Name</label>
+              <label htmlFor="name" className="form-label">
+                Product Name
+              </label>
               <input
                 type="text"
                 id="name"
@@ -141,7 +155,9 @@ const ProductAdd = () => {
             </div>
 
             <div>
-              <label htmlFor="category" className="form-label">Category</label>
+              <label htmlFor="category" className="form-label">
+                Category
+              </label>
               <select
                 id="category"
                 name="category"
@@ -160,7 +176,30 @@ const ProductAdd = () => {
             </div>
 
             <div>
-              <label htmlFor="price" className="form-label">Price (₹)</label>
+              <label htmlFor="subcategory" className="form-label">
+                Sub Category
+              </label>
+              <select
+                id="subcategory"
+                name="subcategory"
+                value={formData.subcategory}
+                onChange={handleChange}
+                required
+                className="form-input"
+              >
+                <option value="">Select a subcategory</option>
+                {subcategories.map((sub) => (
+                  <option key={sub._id} value={sub._id}>
+                    {sub.name} {sub.emoji && `(${sub.emoji})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="price" className="form-label">
+                Price (₹)
+              </label>
               <input
                 type="number"
                 id="price"
@@ -176,7 +215,9 @@ const ProductAdd = () => {
             </div>
 
             <div>
-              <label htmlFor="discount" className="form-label">Discount (%)</label>
+              <label htmlFor="discount" className="form-label">
+                Discount (%)
+              </label>
               <input
                 type="number"
                 id="discount"
@@ -192,7 +233,9 @@ const ProductAdd = () => {
             </div>
 
             <div>
-              <label htmlFor="stock" className="form-label">Stock Quantity</label>
+              <label htmlFor="stock" className="form-label">
+                Stock Quantity
+              </label>
               <input
                 type="number"
                 id="stock"
@@ -207,7 +250,9 @@ const ProductAdd = () => {
             </div>
 
             <div>
-              <label htmlFor="manufacturer" className="form-label">Manufacturer</label>
+              <label htmlFor="manufacturer" className="form-label">
+                Manufacturer
+              </label>
               <input
                 type="text"
                 id="manufacturer"
@@ -243,7 +288,9 @@ const ProductAdd = () => {
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="description" className="form-label">Description</label>
+              <label htmlFor="description" className="form-label">
+                Description
+              </label>
               <textarea
                 id="description"
                 name="description"
@@ -306,16 +353,33 @@ const ProductAdd = () => {
                 <div className="mt-2 space-y-2">
                   {formData.category && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">Category:</span>
+                      <span className="text-sm font-medium text-gray-500">
+                        Category:
+                      </span>
                       <span className="ml-2 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                        {categories.find((cat) => cat._id === formData.category)?.name || "Unknown"}
+                        {categories.find((cat) => cat._id === formData.category)
+                          ?.name || "Unknown"}
+                      </span>
+                    </div>
+                  )}
+
+                  {formData.subcategory && (
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-500">
+                        Sub Category:
+                      </span>
+                      <span className="ml-2 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
+                        {subcategories.find((cat) => cat._id === formData.subcategory)
+                          ?.name || "Unknown"}
                       </span>
                     </div>
                   )}
 
                   {formData.price && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">Price:</span>
+                      <span className="text-sm font-medium text-gray-500">
+                        Price:
+                      </span>
                       <span className="ml-2 text-sm font-medium text-gray-900">
                         ₹{parseFloat(formData.price).toFixed(2)}
                       </span>
@@ -324,7 +388,9 @@ const ProductAdd = () => {
 
                   {formData.discount && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">Discount:</span>
+                      <span className="text-sm font-medium text-gray-500">
+                        Discount:
+                      </span>
                       <span className="ml-2 text-sm font-medium text-gray-900">
                         {formData.discount}%
                       </span>
@@ -333,7 +399,9 @@ const ProductAdd = () => {
 
                   {discountedPrice && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">Discounted Price:</span>
+                      <span className="text-sm font-medium text-gray-500">
+                        Discounted Price:
+                      </span>
                       <span className="ml-2 text-sm font-semibold text-green-600">
                         ₹{discountedPrice}
                       </span>
@@ -342,7 +410,9 @@ const ProductAdd = () => {
 
                   {formData.stock && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">Stock:</span>
+                      <span className="text-sm font-medium text-gray-500">
+                        Stock:
+                      </span>
                       <span className="ml-2 text-sm text-gray-900">
                         {formData.stock} units
                       </span>
@@ -351,7 +421,9 @@ const ProductAdd = () => {
 
                   {formData.manufacturer && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">Manufacturer:</span>
+                      <span className="text-sm font-medium text-gray-500">
+                        Manufacturer:
+                      </span>
                       <span className="ml-2 text-sm text-gray-900">
                         {formData.manufacturer}
                       </span>
@@ -401,8 +473,19 @@ const ProductAdd = () => {
                   fill="none"
                   viewBox="0 0 24 24"
                 >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Saving...
               </span>

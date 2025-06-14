@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import {
-  Plus,
-  Search,
-  FileEdit,
-  Trash2,
-  X
-} from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, Search, FileEdit, Trash2, X } from "lucide-react";
 
 const CategoryList = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
@@ -21,14 +15,14 @@ const CategoryList = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/category');
-        if (!response.ok) throw new Error('Failed to fetch categories');
+        const response = await fetch("http://localhost:5000/api/category");
+        if (!response.ok) throw new Error("Failed to fetch categories");
 
         const data = await response.json();
         setCategories(data);
         setFilteredCategories(data);
       } catch (err) {
-        setError('Error loading categories');
+        setError("Error loading categories");
         console.error(err);
       } finally {
         setLoading(false);
@@ -40,37 +34,41 @@ const CategoryList = () => {
 
   // Search filter
   useEffect(() => {
-    const filtered = categories.filter(category =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = categories.filter(
+      (category) =>
+        category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredCategories(filtered);
   }, [searchTerm, categories]);
 
   const clearSearch = () => {
-    setSearchTerm('');
+    setSearchTerm("");
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if (window.confirm("Are you sure you want to delete this category?")) {
       try {
-        const response = await fetch(`http://localhost:5000/api/category/delete/${id}`, {
-          method: 'DELETE',
-        });
+        const response = await fetch(
+          `http://localhost:5000/api/category/delete/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Delete failed');
+          throw new Error(errorData.message || "Delete failed");
         }
 
-        alert('Category deleted successfully');
+        alert("Category deleted successfully");
         // Refetch categories after delete
-        const updated = categories.filter(c => c._id !== id);
+        const updated = categories.filter((c) => c._id !== id);
         setCategories(updated);
         setFilteredCategories(updated);
       } catch (error) {
-        console.error('Error deleting category:', error);
-        alert('Error deleting category: ' + error.message);
+        console.error("Error deleting category:", error);
+        alert("Error deleting category: " + error.message);
       }
     }
   };
@@ -79,8 +77,13 @@ const CategoryList = () => {
     <div className="space-y-6 fade-in">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="text-xl font-semibold text-gray-800">Category Management</h1>
-        <Link to="/category/add" className="btn btn-primary flex items-center justify-center">
+        <h1 className="text-xl font-semibold text-gray-800">
+          Category Management
+        </h1>
+        <Link
+          to="/category/add"
+          className="btn btn-primary flex items-center justify-center"
+        >
           <Plus size={18} className="mr-1" />
           Add New Category
         </Link>
@@ -117,13 +120,16 @@ const CategoryList = () => {
       {/* Table or Loader/Error */}
       <div className="table-container">
         {loading ? (
-          <div className="text-center py-10 text-gray-500">Loading categories...</div>
+          <div className="text-center py-10 text-gray-500">
+            Loading categories...
+          </div>
         ) : error ? (
           <div className="text-center py-10 text-red-500">{error}</div>
         ) : filteredCategories.length > 0 ? (
           <table className="table">
             <thead className="table-header">
               <tr>
+                <th className="table-header-cell">S.No</th>
                 <th className="table-header-cell">Category</th>
                 <th className="table-header-cell">Description</th>
                 <th className="table-header-cell">Image</th>
@@ -131,10 +137,17 @@ const CategoryList = () => {
               </tr>
             </thead>
             <tbody className="table-body">
-              {filteredCategories.map((category) => (
+              {filteredCategories.map((category, index) => (
                 <tr key={category._id} className="table-row">
-                  <td className="table-cell font-medium text-gray-900">{category.name}</td>
-                  <td className="table-cell text-gray-700">{category.description || '-'}</td>
+                  <td className="table-cell text-gray-800 font-semibold">
+                    {index + 1}
+                  </td>
+                  <td className="table-cell font-medium text-gray-900">
+                    {category.name}
+                  </td>
+                  <td className="table-cell text-gray-700">
+                    {category.description || "-"}
+                  </td>
                   <td className="table-cell">
                     {category.image ? (
                       <img
@@ -171,7 +184,11 @@ const CategoryList = () => {
           </table>
         ) : (
           <div className="text-center py-10 text-gray-500">
-            No categories found. <Link to="/category/add" className="text-blue-600 hover:underline">Create one</Link>.
+            No categories found.{" "}
+            <Link to="/category/add" className="text-blue-600 hover:underline">
+              Create one
+            </Link>
+            .
           </div>
         )}
       </div>

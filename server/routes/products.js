@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { getAllProducts,getProductById,createProduct,updateProduct,deleteProduct ,getProductsByCat } from '../controllers/productController.js';
+import { getAllProducts,getProductById,createProduct,updateProduct,deleteProduct ,getProductsByCat ,getProductsBySubCategory} from '../controllers/productController.js';
 import { uploadProduct } from '../middlewares/cloudinary.js';
 
 const upload = multer({ dest: "uploads/" });
@@ -25,6 +25,9 @@ productRouter.put('/edit/:id', uploadProduct.single('image'), updateProduct);
 productRouter.delete('/delete/:id',deleteProduct)
 
 //get product by category
-productRouter.get('/category/:id',getProductsByCat )
+productRouter.get('/category/:id',getProductsByCat );
+
+//get products by subcategory
+productRouter.get('/subcategory/:id', getProductsBySubCategory);
 
 export default productRouter;

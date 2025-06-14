@@ -229,21 +229,25 @@ const ProductList = () => {
         <table className="table w-full text-left">
           <thead className="table-header">
             <tr>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Discount</th>
-              <th>Discounted Price</th>
-              <th>Stock</th>
-              <th>MANUFACTURER</th>
-              <th>Prescription</th>
-              <th>Actions</th>
+              <th className="table-header-cell w-12 text-center">S.No.</th>
+              <th className="table-header-cell">Product</th>
+              <th className="table-header-cell">Category</th>
+              <th className="table-header-cell">Price</th>
+              <th className="table-header-cell">Discount</th>
+              <th className="table-header-cell">Discounted Price</th>
+              <th className="table-header-cell">Stock</th>
+              <th className="table-header-cell">MANUFACTURER</th>
+              <th className="table-header-cell">Prescription</th>
+              <th className="table-header-cell">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <tr key={product._id}>
+              filteredProducts.map((product, index) => (
+                <tr key={product._id} className="border-b border-gray-100">
+                  <td className="table-cell text-center font-medium">
+                    {index + 1}
+                  </td>
                   <td>
                     <div className="flex items-center">
                       <img
@@ -320,7 +324,7 @@ const ProductList = () => {
             ) : (
               <tr>
                 <td
-                  colSpan="9"
+                  colSpan="10"
                   className="py-8 text-center text-sm text-gray-500"
                 >
                   No products found matching your criteria.

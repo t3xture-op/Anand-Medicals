@@ -15,6 +15,8 @@ import reportRoutes from './routes/reports.js'
 import notificationRoutes from './routes/notification.js'
 import cookieParser from 'cookie-parser';
 import offerRoutes from './routes/offer.js';
+import bannerRoutes from './routes/banner.js'
+import subCategoryRoutes from './routes/subCategory.js'
 
 dotenv.config();
 
@@ -32,13 +34,11 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('CORS not allowed'));
     }
   },
   credentials: true,
 }));
-
-
 app.use(express.json());
 
 // MongoDB Connection
@@ -56,7 +56,9 @@ app.use('/api/address',addressRoutes)
 app.use('/api/offer', offerRoutes);
 app.use('/api/prescription',prescriptionRoutes);
 app.use('/api/reports', reportRoutes);
-app.use('/api/notifications',notificationRoutes)
+app.use('/api/notifications',notificationRoutes);
+app.use('/api/banner',bannerRoutes)
+app.use('/api/subcategory', subCategoryRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

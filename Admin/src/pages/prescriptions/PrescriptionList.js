@@ -1,33 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  Search, Filter, ExternalLink, X,
-  CheckCircle, AlertTriangle, XCircle, Calendar
-} from 'lucide-react';
+  Search,
+  Filter,
+  ExternalLink,
+  X,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  Calendar,
+} from "lucide-react";
 
 const PrescriptionList = () => {
   const [prescriptions, setPrescriptions] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-
-        const res = await fetch('http://localhost:5000/api/prescription/all', {
-          method: 'GET',
-          credentials:"include"
+        const res = await fetch("http://localhost:5000/api/prescription/all", {
+          method: "GET",
+          credentials: "include",
         });
 
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.message || 'Failed to fetch prescriptions');
+          throw new Error(data.message || "Failed to fetch prescriptions");
         }
 
         const data = await res.json();
-        if (!Array.isArray(data)) throw new Error('Invalid data format');
+        if (!Array.isArray(data)) throw new Error("Invalid data format");
         setPrescriptions(data);
       } catch (err) {
         console.error(err);
@@ -41,47 +46,87 @@ const PrescriptionList = () => {
   const filteredPrescriptions = prescriptions.filter((prescription) => {
     const matchesSearch =
       prescription.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (prescription.orderId && prescription.orderId.toString().includes(searchTerm));
-    const matchesStatus = statusFilter ? prescription.status === statusFilter : true;
+      (prescription.orderId &&
+        prescription.orderId.toString().includes(searchTerm));
+    const matchesStatus = statusFilter
+      ? prescription.status === statusFilter
+      : true;
     return matchesSearch && matchesStatus;
   });
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Not reviewed yet';
+    if (!dateString) return "Not reviewed yet";
     const options = {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('');
+    setSearchTerm("");
+    setStatusFilter("");
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'approved': return <CheckCircle size={18} className="text-green-500" />;
-      case 'pending': return <AlertTriangle size={18} className="text-amber-500" />;
-      case 'rejected': return <XCircle size={18} className="text-red-500" />;
-      default: return null;
+      case "approved":
+        return <CheckCircle size={18} className="text-green-500" />;
+      case "pending":
+        return <AlertTriangle size={18} className="text-amber-500" />;
+      case "rejected":
+        return <XCircle size={18} className="text-red-500" />;
+      default:
+        return null;
     }
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-amber-100 text-amber-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-amber-100 text-amber-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
+
+
+  const handleDelete = async (id) => {
+  if (!window.confirm('Are you sure you want to delete this prescription?')) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/prescription/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || 'Failed to delete prescription');
+    }
+
+    setPrescriptions(prev => prev.filter(p => p.id !== id));
+    alert('Prescription deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    alert('Failed to delete prescription');
+  }
+};
+
 
   return (
     <div className="space-y-6 fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-800">Prescription Management</h1>
+        <h1 className="text-xl font-semibold text-gray-800">
+          Prescription Management
+        </h1>
       </div>
 
       <div className="rounded-lg border bg-white p-4 shadow-sm">
@@ -104,7 +149,11 @@ const PrescriptionList = () => {
           >
             <Filter size={18} className="mr-2" />
             Filter
-            {statusFilter && <span className="ml-2 bg-blue-100 px-2 text-xs text-blue-800 rounded-full">1</span>}
+            {statusFilter && (
+              <span className="ml-2 bg-blue-100 px-2 text-xs text-blue-800 rounded-full">
+                1
+              </span>
+            )}
           </button>
           <div className="hidden sm:flex gap-3 items-center">
             <select
@@ -118,7 +167,10 @@ const PrescriptionList = () => {
               <option value="rejected">Rejected</option>
             </select>
             {(searchTerm || statusFilter) && (
-              <button onClick={clearFilters} className="text-blue-600 text-sm flex items-center">
+              <button
+                onClick={clearFilters}
+                className="text-blue-600 text-sm flex items-center"
+              >
                 <X size={16} className="mr-1" /> Clear
               </button>
             )}
@@ -160,39 +212,63 @@ const PrescriptionList = () => {
                   alt={`Prescription for ${prescription.userName}`}
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = 'https://via.placeholder.com/400x300?text=Prescription+Image';
+                    e.target.src =
+                      "https://via.placeholder.com/400x300?text=Prescription+Image";
                   }}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-4">
-                  <h3 className="text-white text-base font-medium">{prescription.userName}</h3>
-                  <p className="text-white text-sm mt-1">Order ID: {prescription.orderId}</p>
+                  <h3 className="text-white text-base font-medium">
+                    {prescription.userName}
+                  </h3>
+                  <p className="text-white text-sm mt-1">
+                    Order ID: {prescription.orderId}
+                  </p>
                 </div>
-                <div className="absolute top-2 right-2 bg-white p-1 rounded-full">
-                  {getStatusIcon(prescription.status)}
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <div className="bg-white p-1 rounded-full">
+                    {getStatusIcon(prescription.status)}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(prescription.id)}
+                    className="bg-white p-1 rounded-full hover:bg-red-100"
+                    title="Delete Prescription"
+                  >
+                    <X size={16} className="text-red-600" />
+                  </button>
                 </div>
               </div>
               <div className="mt-4 px-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500">Status:</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(prescription.status)}`}>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(
+                      prescription.status
+                    )}`}
+                  >
                     {prescription.status}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center">
                   <Calendar size={16} className="text-gray-400 mr-1" />
-                  <span className="text-sm text-gray-600">{formatDate(prescription.reviewDate)}</span>
+                  <span className="text-sm text-gray-600">
+                    {formatDate(prescription.reviewDate)}
+                  </span>
                 </div>
                 {prescription.notes && (
-                  <p className="mt-2 text-sm text-gray-600 line-clamp-2">{prescription.notes}</p>
+                  <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+                    {prescription.notes}
+                  </p>
                 )}
                 <div className="mt-4 text-right">
                   <Link
                     to={`/prescriptions/${prescription.id}`}
                     className="text-blue-600 text-sm flex items-center justify-end"
                   >
-                    {prescription.status === 'pending' ? 'Review Now' : 'View Details'}
+                    {prescription.status === "pending"
+                      ? "Review Now"
+                      : "View Details"}
                     <ExternalLink size={14} className="ml-1" />
                   </Link>
                 </div>
@@ -201,7 +277,9 @@ const PrescriptionList = () => {
           ))
         ) : (
           <div className="col-span-3 p-8 text-center border rounded-lg">
-            <p className="text-gray-500">No prescriptions found matching your criteria.</p>
+            <p className="text-gray-500">
+              No prescriptions found matching your criteria.
+            </p>
           </div>
         )}
       </div>

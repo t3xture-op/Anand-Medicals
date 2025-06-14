@@ -1,6 +1,9 @@
 import Prescription from "../models/Prescription.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
+import { extractPublicId } from "cloudinary-build-url";
+import { v2 as cloudinary } from "cloudinary";
+import { notificationEmitter } from "../routes/notification.js";
 
 //add prescription
 export async function addPrescription(req, res) {
@@ -30,12 +33,16 @@ export async function addPrescription(req, res) {
 
     const saved = await newPrescription.save();
 
-    await Notification.create({
+    const notification = new Notification({
       title: "New Prescription Uploaded",
       message: `A new prescription was uploaded by ${req.user.name}.`,
       type: "prescription",
-      targetId: saved._id, // <- required field
+      targetId: saved._id,
     });
+
+    const savedNotification = await notification.save();
+
+    notificationEmitter.emit("newNotif", savedNotification);
 
     res
       .status(201)
@@ -125,3 +132,27 @@ export async function reviewPrescription(req, res) {
     });
   }
 }
+
+// delete prescription
+export const deletePrescription = async (req, res) => {
+  try {
+    const prescription = await Prescription.findById(req.params.id);
+    if (!prescription) {
+      return res.status(404).json({ message: "Prescription not found" });
+    }
+
+    if (prescription.image) {
+      const publicId = extractPublicId(prescription.image);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+      }
+    }
+
+    await prescription.deleteOne();
+
+    res.status(200).json({ message: "Prescription deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting prescription:", error);
+    res.status(500).json({ message: "Failed to delete prescription" });
+  }
+};

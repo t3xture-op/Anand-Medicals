@@ -7,6 +7,10 @@ import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import Notification from "../models/Notification.js";
 import Order from "../models/Order.js";
+import { notificationEmitter } from "../routes/notification.js";
+import { v2 as cloudinary } from 'cloudinary';
+import { extractPublicId } from 'cloudinary-build-url';
+import bcrypt from 'bcryptjs';
 
 //register a user
 export async function userRegistration(req, res) {
@@ -21,12 +25,15 @@ export async function userRegistration(req, res) {
     const user = new User({ email, password, name });
     await user.save();
 
-    await Notification.create({
+    const notification = new Notification({
       title: "New User Registered",
       message: `Welcome ${user.name} to the platform.`,
       type: "user",
       targetId: user._id, // <- required field
     });
+    const savedNotification = await notification.save();
+
+    notificationEmitter.emit("newNotif", savedNotification);
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
@@ -206,10 +213,10 @@ export async function resetPassword(req, res) {
   }
 }
 
+
 //get all users
 export async function getAllUsers(req, res) {
   try {
-    // Only fetch users where role is 'user'
     const users = await User.find({ role: "user" });
 
     res.status(200).json(users);
@@ -218,6 +225,7 @@ export async function getAllUsers(req, res) {
     res.status(500).json({ message: "Failed to fetch users" });
   }
 }
+
 
 //get user by id
 export async function getUserId(req, res) {
@@ -234,3 +242,71 @@ export async function getUserId(req, res) {
     res.status(500).json({ message: "Failed to fetch user" });
   }
 }
+
+
+//update profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, email, phone, gender, dob } = req.body;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, email, phone, gender, dob },
+      { new: true }
+    ).select('-password');
+
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update profile' });
+  }
+};
+//upload photo
+
+export const uploadProfilePhoto = async (req, res) => {
+  try {
+    // Use multer or cloudinary file upload
+    const imageUrl = req.body.image; // Assume Cloudinary link from frontend
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { profileImage: imageUrl },
+      { new: true }
+    );
+    res.json({ message: 'Profile photo updated', image: updated.profileImage });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to upload profile photo' });
+  }
+};
+
+//delete photo
+export const deleteProfilePhoto = async (req, res) => {
+  try {
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { profileImage: '' },
+      { new: true }
+    );
+    res.json({ message: 'Profile photo removed' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete profile photo' });
+  }
+};
+
+//change password from profile
+
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+
+    const isMatch = await user.comparePassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Old password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error changing password' });
+  }
+};

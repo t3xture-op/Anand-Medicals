@@ -22,6 +22,7 @@ const OrderDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [copyStatus, setCopyStatus] = useState(null);
 
   // Fetch order and prescription data
   useEffect(() => {
@@ -126,6 +127,12 @@ const OrderDetail = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const copyCoordinates = (lat, lng) => {
+    navigator.clipboard.writeText(`${lat},${lng}`);
+    setCopyStatus("Copied!");
+    setTimeout(() => setCopyStatus(null), 2000);
   };
 
   // Payment status color mapping
@@ -464,6 +471,36 @@ const OrderDetail = () => {
                         {order.shippingAddress.state} -{" "}
                         {order.shippingAddress.pincode}
                       </p>
+
+                      {/* Add coordinates display here */}
+                      <div className="mt-2 flex items-center">
+                        <span className="font-medium text-gray-900 mr-2">
+                          Coordinates:
+                        </span>
+                        {order.shippingAddress.coordinates ? (
+                          <>
+                            <span
+                              className="cursor-pointer text-blue-600 hover:underline"
+                              onClick={() =>
+                                copyCoordinates(
+                                  order.shippingAddress.coordinates.lat,
+                                  order.shippingAddress.coordinates.lng
+                                )
+                              }
+                            >
+                              {order.shippingAddress.coordinates.lat},{" "}
+                              {order.shippingAddress.coordinates.lng}
+                            </span>
+                            {copyStatus && (
+                              <span className="ml-2 text-xs text-green-600">
+                                {copyStatus}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-gray-600">nil</span>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <p>Address not available</p>

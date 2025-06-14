@@ -1,6 +1,7 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
+import Prescription from '../models/Prescription.js';
 import PDFDocument from 'pdfkit';
 
 
@@ -27,6 +28,10 @@ export async function getDashboardStats(req, res) {
     const totalOrders = await Order.countDocuments();
     const totalProducts = await Product.countDocuments();
     const totalUsers = await User.countDocuments();
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+
+    // 🔍 Count of prescriptions to review
+    const prescriptionToReview = await Prescription.countDocuments({ status: 'pending' });
 
     // Sales chart: monthly completed & non-refunded orders
     const salesChartAgg = await Order.aggregate([
@@ -55,7 +60,6 @@ export async function getDashboardStats(req, res) {
       data: salesChartAgg.map(d => d.total)
     };
 
-    // Order status chart
     const orderStatusAgg = await Order.aggregate([
       {
         $group: {
@@ -70,7 +74,6 @@ export async function getDashboardStats(req, res) {
       data: orderStatusAgg.map(item => item.count)
     };
 
-    // Top-selling products
     const topSellingProducts = await Order.aggregate([
       {
         $match: {
@@ -117,10 +120,9 @@ export async function getDashboardStats(req, res) {
       { $limit: 5 }
     ]);
 
-    // User registration chart (last 6 months)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-    sixMonthsAgo.setDate(1); // start of month
+    sixMonthsAgo.setDate(1);
 
     const userAgg = await User.aggregate([
       {
@@ -147,12 +149,13 @@ export async function getDashboardStats(req, res) {
       data: userAgg.map(d => d.count)
     };
 
-    // Final response
     res.json({
       totalSales,
       totalOrders,
       totalProducts,
       totalUsers,
+      pendingOrders,
+      prescriptionToReview,
       salesChart,
       orderStatusChart,
       topSellingProducts,
@@ -163,8 +166,6 @@ export async function getDashboardStats(req, res) {
     res.status(500).json({ message: err.message });
   }
 }
-
-
 
 
 
@@ -290,5 +291,116 @@ export async function downloadReport(req, res) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to generate report', error: err.message });
+  }
+}
+
+
+//get sales details
+export async function getSalesDetails(req, res) {
+  const { from, to } = req.query;
+
+  const match = {
+    paymentStatus: 'completed',
+    status: { $nin: ['refunded', 'cancelled'] }
+  };
+  if (from) match.createdAt = { $gte: new Date(from) };
+  if (to) {
+    match.createdAt = {
+      ...match.createdAt,
+      $lte: new Date(new Date(to).setHours(23,59,59,999))
+    };
+  }
+
+  const details = await Order.find(match)
+    .sort({ createdAt: -1 })
+    .select('createdAt totalAmount items')
+    .populate('items.product', 'name')
+    .lean();
+
+  const formatted = details.map(o => ({
+    id: o._id,
+    date: o.createdAt.toISOString().slice(0,10),
+    time: o.createdAt.toISOString().slice(11,19),
+    total: o.totalAmount,
+    items: o.items.map(i => ({
+      name: i.product.name,
+      qty: i.quantity,
+      price: i.price
+    }))
+  }));
+  
+  res.json(formatted);
+}
+
+// get order reports
+
+export async function getOrdersReport(req, res) {
+  const { from, to } = req.query;
+  const match = {};
+  if (from) match.createdAt = { $gte: new Date(from) };
+  if (to) match.createdAt = { ...match.createdAt, $lte: new Date(new Date(to).setHours(23,59,59,999)) };
+
+  const orders = await Order.find(match)
+    .sort({ createdAt: -1 })
+    .select('status createdAt totalAmount')
+    .lean();
+
+  res.json(orders.map(o => ({
+    id: o._id,
+    date: o.createdAt.toISOString().slice(0,10),
+    time: o.createdAt.toISOString().slice(11,19),
+    status: o.status,
+    total: o.totalAmount
+  })));
+}
+
+//get products reports
+
+export async function getProductsReport(req, res) {
+  try {
+    const { from, to } = req.query;
+
+    const match = {
+      paymentStatus: 'completed',
+      status: { $nin: ['cancelled', 'refunded'] }
+    };
+    if (from) match.createdAt = { $gte: new Date(from) };
+    if (to) match.createdAt = { ...match.createdAt, $lte: new Date(new Date(to).setHours(23, 59, 59, 999)) };
+
+    const result = await Order.aggregate([
+      { $match: match },
+      { $unwind: "$items" },
+      { $group: {
+          _id: "$items.product",
+          totalQuantity: { $sum: "$items.quantity" },
+          totalRevenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+        }
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $project: {
+          _id: 0,
+          productId: "$product._id",
+          name: "$product.name",
+          manufacturer: "$product.manufacturer",
+          totalQuantity: 1,
+          totalRevenue: 1
+        }
+      },
+      { $sort: { totalQuantity: -1 } }
+    ]);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in getProductsReport:", error);
+    res.status(500).json({ message: "Error fetching product performance report" });
   }
 }

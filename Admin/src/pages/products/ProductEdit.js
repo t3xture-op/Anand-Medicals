@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Save, ArrowLeft, Trash2 } from "lucide-react";
 
 const ProductEdit = () => {
   const { id } = useParams();
@@ -10,47 +10,59 @@ const ProductEdit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [subcategories, setSubcategories] = useState([]);
+
   const fileInputRef = useRef();
 
   const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    price: '',
-    discount: '',
-    stock: '',
-    manufacturer: '',
-    image: '',
-    description: '',
+    name: "",
+    category: "",
+    subcategory: " ",
+    price: "",
+    discount: "",
+    stock: "",
+    manufacturer: "",
+    image: "",
+    description: "",
     prescription_status: false,
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productRes = await fetch(`http://localhost:5000/api/products/${id}`);
+        const productRes = await fetch(
+          `http://localhost:5000/api/products/${id}`
+        );
         const categoryRes = await fetch(`http://localhost:5000/api/category`);
+        const subcategoryRes = await fetch(
+          `http://localhost:5000/api/subcategory`
+        );
 
-        if (!productRes.ok || !categoryRes.ok) throw new Error('Failed to fetch data');
+        if (!productRes.ok || !categoryRes.ok)
+          throw new Error("Failed to fetch data");
 
         const productData = await productRes.json();
         const categoryData = await categoryRes.json();
+        const subcategoryData = await subcategoryRes.json();
 
         setFormData({
-          name: productData.name || '',
-          price: productData.price || '',
-          discount: productData.discount || '',
-          description: productData.description || '',
-          manufacturer: productData.manufacturer || '',
-          stock: productData.stock || '',
-          category: productData.category || '',
-          image: productData.image || '',
+          name: productData.name || "",
+          price: productData.price || "",
+          discount: productData.discount || "",
+          description: productData.description || "",
+          manufacturer: productData.manufacturer || "",
+          stock: productData.stock || "",
+          category: productData.category || "",
+          subcategory: productData.subcategory || "",
+          image: productData.image || "",
           prescription_status: productData.prescription_status ?? false,
         });
 
         setCategories(categoryData);
+        setSubcategories(subcategoryData);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        navigate('/products');
+        console.error("Error fetching data:", error);
+        navigate("/products");
       } finally {
         setIsLoading(false);
       }
@@ -61,9 +73,9 @@ const ProductEdit = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -72,14 +84,14 @@ const ProductEdit = () => {
     setSelectedFile(file);
     if (file) {
       const previewURL = URL.createObjectURL(file);
-      setFormData(prev => ({ ...prev, image: previewURL }));
+      setFormData((prev) => ({ ...prev, image: previewURL }));
     }
   };
 
   const clearImage = () => {
     setSelectedFile(null);
-    setFormData(prev => ({ ...prev, image: '' }));
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setFormData((prev) => ({ ...prev, image: "" }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = async (e) => {
@@ -87,46 +99,53 @@ const ProductEdit = () => {
     setIsSubmitting(true);
     try {
       const form = new FormData();
-      form.append('name', formData.name);
-      form.append('category', formData.category);
-      form.append('price', formData.price);
-      form.append('discount', formData.discount);
-      form.append('stock', formData.stock);
-      form.append('manufacturer', formData.manufacturer);
-      form.append('description', formData.description);
-      form.append('prescription_status', formData.prescription_status.toString());
+      form.append("name", formData.name);
+      form.append("category", formData.category);
+      form.append("subcategory", formData.subcategory);
+      form.append("price", formData.price);
+      form.append("discount", formData.discount);
+      form.append("stock", formData.stock);
+      form.append("manufacturer", formData.manufacturer);
+      form.append("description", formData.description);
+      form.append(
+        "prescription_status",
+        formData.prescription_status.toString()
+      );
       if (selectedFile) {
-        form.append('image', selectedFile);
+        form.append("image", selectedFile);
       }
 
       const res = await fetch(`http://localhost:5000/api/products/edit/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         body: form,
       });
 
-      if (!res.ok) throw new Error('Failed to update product');
-      alert('Product updated successfully');
-      navigate('/products');
+      if (!res.ok) throw new Error("Failed to update product");
+      alert("Product updated successfully");
+      navigate("/products");
     } catch (error) {
-      console.error('Error updating product:', error);
-      alert('Error updating product');
+      console.error("Error updating product:", error);
+      alert("Error updating product");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        const res = await fetch(`http://localhost:5000/api/products/delete/${id}`, {
-          method: 'DELETE'
-        });
-        if (!res.ok) throw new Error('Failed to delete product');
-        alert('Product deleted');
-        navigate('/products');
+        const res = await fetch(
+          `http://localhost:5000/api/products/delete/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
+        if (!res.ok) throw new Error("Failed to delete product");
+        alert("Product deleted");
+        navigate("/products");
       } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Error deleting product');
+        console.error("Error deleting product:", error);
+        alert("Error deleting product");
       }
     }
   };
@@ -145,19 +164,26 @@ const ProductEdit = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button
-            onClick={() => navigate('/products')}
+            onClick={() => navigate("/products")}
             className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
           >
             <ArrowLeft size={20} />
           </button>
           <h1 className="text-xl font-semibold text-gray-800">Edit Product</h1>
         </div>
-        <button onClick={handleDelete} className="btn btn-danger flex items-center">
+        <button
+          onClick={handleDelete}
+          className="btn btn-danger flex items-center"
+        >
           <Trash2 size={18} className="mr-2" /> Delete Product
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+        encType="multipart/form-data"
+      >
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
@@ -184,6 +210,22 @@ const ProductEdit = () => {
                 {categories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Subcategory</label>
+              <select
+                name="subcategory"
+                value={formData.subcategory}
+                onChange={handleChange}
+                className="form-input"
+              >
+                <option value="">Select subcategory</option>
+                {subcategories.map((sub) => (
+                  <option key={sub._id} value={sub._id}>
+                    {sub.name} {sub.emoji}
                   </option>
                 ))}
               </select>
@@ -290,7 +332,9 @@ const ProductEdit = () => {
 
         {/* Product Preview */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-medium text-gray-800">Product Preview</h2>
+          <h2 className="mb-4 text-lg font-medium text-gray-800">
+            Product Preview
+          </h2>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="h-48 w-48 overflow-hidden rounded border">
               <img
@@ -298,33 +342,52 @@ const ProductEdit = () => {
                 alt={formData.name}
                 onError={(e) =>
                   (e.target.src =
-                    'https://dummyimage.com/150x150/cccccc/ffffff&text=No+Image')
+                    "https://dummyimage.com/150x150/cccccc/ffffff&text=No+Image")
                 }
                 className="h-full w-full object-cover"
               />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">{formData.name}</h3>
+              <h3 className="text-lg font-medium text-gray-900">
+                {formData.name}
+              </h3>
               <p className="text-sm text-gray-500">
-                Category:{' '}
-                {categories.find((c) => c._id === formData.category)?.name || 'N/A'}
+                Category:{" "}
+                {categories.find((c) => c._id === formData.category)?.name ||
+                  "N/A"}
+              </p>
+              <p className="text-sm text-gray-500">
+                Subcategory:{" "}
+                {subcategories.find((s) => s._id === formData.subcategory)
+                  ?.emoji +
+                  " " +
+                  subcategories.find((s) => s._id === formData.subcategory)
+                    ?.name || "N/A"}
               </p>
               <p className="text-sm text-gray-500">
                 Price: ₹{parseFloat(formData.price || 0).toFixed(2)}
               </p>
-              <p className="text-sm text-gray-500">Discount: {formData.discount || 0}%</p>
+              <p className="text-sm text-gray-500">
+                Discount: {formData.discount || 0}%
+              </p>
               <p className="text-sm font-semibold text-gray-700">
                 Discounted Price: ₹{discountedPrice}
               </p>
-              <p className="text-sm text-gray-500">Stock: {formData.stock} units</p>
-              <p className="text-sm text-gray-500">Manufacturer: {formData.manufacturer}</p>
+              <p className="text-sm text-gray-500">
+                Stock: {formData.stock} units
+              </p>
+              <p className="text-sm text-gray-500">
+                Manufacturer: {formData.manufacturer}
+              </p>
               {formData.prescription_status && (
                 <span className="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
                   Prescription Required
                 </span>
               )}
               {formData.description && (
-                <p className="text-sm text-gray-600 mt-2">{formData.description}</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  {formData.description}
+                </p>
               )}
             </div>
           </div>
@@ -334,13 +397,19 @@ const ProductEdit = () => {
           <button
             type="button"
             className="btn btn-outline"
-            onClick={() => navigate('/products')}
+            onClick={() => navigate("/products")}
             disabled={isSubmitting}
           >
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : (
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              "Saving..."
+            ) : (
               <span className="flex items-center">
                 <Save size={18} className="mr-2" />
                 Save Changes

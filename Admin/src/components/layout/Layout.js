@@ -30,6 +30,15 @@ const Layout = () => {
       if (path.includes('/add')) return 'Add Category';
       if (path.includes('/edit')) return 'Edit Category';
     }
+     if (path.startsWith('/sub-category')){
+      if (path === '/sub-category')return 'Sub Category';
+      if (path.includes('/add')) return 'Add Sub Category';
+      if (path.includes('/edit')) return 'Edit Sub Category';
+    }
+     if (path.startsWith('/banner')){
+      if (path === '/banner')return 'Banner';
+      if (path.includes('/add')) return 'Add Banner';
+    }
     if (path.startsWith('/orders')) {
       if (path === '/orders') return 'Orders';
       return 'Order Details';

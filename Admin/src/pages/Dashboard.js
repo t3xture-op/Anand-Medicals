@@ -1,16 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
+import {
   ShoppingBag,
   Users,
   Package,
   AlertTriangle,
   FileText,
   TrendingUp,
-  DollarSign,
-  Clock
+  IndianRupee,
+  Clock,
 } from 'lucide-react';
-import { dashboardStats } from '../utils/mockData';
 import DashboardChart from '../components/dashboard/DashboardChart';
 import DashboardMetricCard from '../components/dashboard/DashboardMetricCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
@@ -18,18 +17,54 @@ import TopSellingProducts from '../components/dashboard/TopSellingProducts';
 import LowStockAlert from '../components/dashboard/LowStockAlert';
 
 const Dashboard = () => {
-  const {
-    totalSales,
-    totalOrders,
-    totalUsers,
-    pendingOrders,
-    lowStockProducts,
-    pendingPrescriptions,
-    salesChart,
-    orderStatusChart,
-    topSellingProducts,
-    recentActivity
-  } = dashboardStats;
+  const [stats, setStats] = useState(null);
+  const [activities, setActivities] = useState([]);
+  const [lowStockAlerts, setLowStockAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/reports/stats', {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        // Limit top selling products to 4
+        data.topSellingProducts = data.topSellingProducts.slice(0, 4);
+        setStats(data);
+      } catch (err) {
+        console.error('Failed to fetch dashboard stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/notifications', {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        const recent = data.slice(0, 4);
+            const lowStock = data.filter(n => n.type === 'stock' && n.product && n.product.stock <= 10).slice(0, 4);
+        setActivities(recent);
+        setLowStockAlerts(lowStock);
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
+      }
+    };
+
+    fetchStats();
+    fetchNotifications();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-10 text-gray-500">Loading dashboard...</div>;
+  }
+
+  if (!stats) {
+    return <div className="text-center py-10 text-red-500">Failed to load dashboard data.</div>;
+  }
 
   return (
     <div className="space-y-6 fade-in">
@@ -37,31 +72,31 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardMetricCard
           title="Total Sales"
-          value={`₹${totalSales.toLocaleString()}`}
-          icon={<DollarSign className="h-8 w-8 text-green-600" />}
+          value={`₹${stats.totalSales.toLocaleString()}`}
+          icon={<IndianRupee className="h-8 w-8 text-green-600"/>}
           change="+12.5%"
           trend="up"
         />
-        
+
         <DashboardMetricCard
           title="Total Orders"
-          value={totalOrders}
+          value={stats.totalOrders}
           icon={<ShoppingBag className="h-8 w-8 text-blue-600" />}
           change="+7.2%"
           trend="up"
         />
-        
+
         <DashboardMetricCard
           title="Total Users"
-          value={totalUsers}
+          value={stats.totalUsers}
           icon={<Users className="h-8 w-8 text-purple-600" />}
           change="+4.3%"
           trend="up"
         />
-        
+
         <DashboardMetricCard
           title="Pending Orders"
-          value={pendingOrders}
+          value={stats.pendingOrders}
           icon={<Clock className="h-8 w-8 text-amber-600" />}
           change="-2.1%"
           trend="down"
@@ -72,28 +107,28 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card">
           <h2 className="mb-4 text-lg font-medium text-gray-800">Sales Overview</h2>
-          <DashboardChart 
-            type="line"
-            labels={salesChart.labels}
-            data={salesChart.data}
+          <DashboardChart
+            type={stats.salesChart.data.length === 1 ? 'bar' : 'line'}
+            labels={stats.salesChart.labels}
+            data={stats.salesChart.data}
             label="Sales (₹)"
             borderColor="#2563EB"
             backgroundColor="rgba(37, 99, 235, 0.1)"
           />
         </div>
-        
+
         <div className="card">
           <h2 className="mb-4 text-lg font-medium text-gray-800">Order Status</h2>
-          <DashboardChart 
+          <DashboardChart
             type="doughnut"
-            labels={orderStatusChart.labels}
-            data={orderStatusChart.data}
+            labels={stats.orderStatusChart.labels}
+            data={stats.orderStatusChart.data}
             backgroundColor={[
-              '#F59E0B', // Pending - amber
-              '#3B82F6', // Processing - blue
-              '#10B981', // Shipped - green
-              '#059669', // Delivered - green
-              '#EF4444', // Cancelled - red
+              '#F59E0B',
+              '#3B82F6',
+              '#10B981',
+              '#059669',
+              '#EF4444',
             ]}
           />
         </div>
@@ -107,35 +142,43 @@ const Dashboard = () => {
             <h2 className="text-lg font-medium text-gray-800">Low Stock Alert</h2>
             <AlertTriangle className="h-5 w-5 text-amber-500" />
           </div>
-          <LowStockAlert />
+          {lowStockAlerts.length > 0 ? (
+            <LowStockAlert alerts={lowStockAlerts} />
+          ) : (
+            <p className="text-sm text-gray-500 text-center">All products are well stocked ✅</p>
+          )}
           <div className="mt-4 text-center">
             <Link to="/products" className="text-sm font-medium text-blue-600 hover:text-blue-500">
               View all products
             </Link>
           </div>
         </div>
-        
+
         {/* Top Selling Products */}
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-800">Top Selling Products</h2>
             <TrendingUp className="h-5 w-5 text-green-500" />
           </div>
-          <TopSellingProducts products={topSellingProducts} />
+          <TopSellingProducts products={stats.topSellingProducts} />
           <div className="mt-4 text-center">
             <Link to="/reports" className="text-sm font-medium text-blue-600 hover:text-blue-500">
               View sales report
             </Link>
           </div>
         </div>
-        
+
         {/* Recent Activity */}
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-800">Recent Activity</h2>
             <Clock className="h-5 w-5 text-blue-500" />
           </div>
-          <RecentActivity activities={recentActivity} />
+          {activities.length > 0 ? (
+            <RecentActivity activities={activities} />
+          ) : (
+            <p className="text-sm text-gray-500 text-center">No recent activities.</p>
+          )}
           <div className="mt-4 text-center">
             <Link to="/notifications" className="text-sm font-medium text-blue-600 hover:text-blue-500">
               View all activity
@@ -152,31 +195,35 @@ const Dashboard = () => {
             <h3 className="mt-2 text-sm font-medium text-gray-800">Add New Product</h3>
           </div>
         </Link>
-        
+
         <Link to="/orders" className="card flex items-center justify-center p-4 text-center hover:bg-blue-50">
           <div>
             <ShoppingBag className="mx-auto h-8 w-8 text-blue-600" />
-            <h3 className="mt-2 text-sm font-medium text-gray-800">Manage Orders</h3>
-            {pendingOrders > 0 && (
-              <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                {pendingOrders} pending
-              </span>
-            )}
+            <h3 className="mt-2 text-sm font-medium text-gray-800">
+              Manage Orders
+              {stats.pendingOrders > 0 && (
+                <span className="ml-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-600">
+                  {stats.pendingOrders}
+                </span>
+              )}
+            </h3>
           </div>
         </Link>
-        
+
         <Link to="/prescriptions" className="card flex items-center justify-center p-4 text-center hover:bg-blue-50">
           <div>
             <FileText className="mx-auto h-8 w-8 text-blue-600" />
-            <h3 className="mt-2 text-sm font-medium text-gray-800">Review Prescriptions</h3>
-            {pendingPrescriptions > 0 && (
-              <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                {pendingPrescriptions} pending
-              </span>
-            )}
+            <h3 className="mt-2 text-sm font-medium text-gray-800">
+              Review Prescriptions
+              {stats.prescriptionToReview > 0 && (
+                <span className="ml-2 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+                  {stats.prescriptionToReview}
+                </span>
+              )}
+            </h3>
           </div>
         </Link>
-        
+
         <Link to="/offers/add" className="card flex items-center justify-center p-4 text-center hover:bg-blue-50">
           <div>
             <Package className="mx-auto h-8 w-8 text-blue-600" />

@@ -33,6 +33,7 @@ export async function createProduct(req, res) {
     const {
       name,
       category,
+      subcategory,
       price,
       discount,
       stock,
@@ -55,6 +56,7 @@ export async function createProduct(req, res) {
     const newProduct = new Product({
       name,
       category,
+      subcategory,
       price,
       discount,
       discount_price,
@@ -85,6 +87,7 @@ export async function updateProduct(req, res) {
       discount_price,
       stock,
       category,
+      subcategory,
       prescription_status,
       manufacturer
     } = req.body;
@@ -110,6 +113,7 @@ export async function updateProduct(req, res) {
     product.discount = discount ?? product.discount;
     product.stock = stock ?? product.stock;
     product.category = category ?? product.category;
+    product.subcategory = subcategory ?? product.subcategory;
     product.manufacturer = manufacturer ?? product.manufacturer;
 
     if (typeof prescription_status === 'string') {
@@ -177,5 +181,18 @@ export async function getProductsByCat(req, res) {
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: "Error fetching products by category", error: error.message });
+  }
+}
+
+//get product by subcategory
+export async function getProductsBySubCategory(req, res) {
+  try {
+    const subCategoryId = req.params.id;
+
+    const products = await Product.find({ subcategory: subCategoryId }); 
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Error fetching products by subcategory:', error);
+    res.status(500).json({ message: 'Failed to fetch products' });
   }
 }

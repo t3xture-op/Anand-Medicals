@@ -41,7 +41,15 @@ const prescriptionStorage = new CloudinaryStorage({
 const userStorage = new CloudinaryStorage({
   cloudinary,
   params:{
-    folder : 'user',
+    folder : 'users',
+    allowed_fromates: ['jpg','jpeg','png']
+  }
+})
+
+const bannerStorage = new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder : 'Banners',
     allowed_fromates: ['jpg','jpeg','png']
   }
 })
@@ -51,5 +59,6 @@ const uploadProduct = multer({ storage: productStorage });
 const uploadCategory = multer({ storage: categoryStorage });
 const uploadPrescription = multer({ storage: prescriptionStorage });
 const uploadUser= multer({ storage: userStorage });
+const uploadBanner= multer({ storage: bannerStorage });
 
-export { cloudinary, uploadProduct, uploadCategory, uploadPrescription ,uploadUser };
+export { cloudinary, uploadProduct, uploadCategory, uploadPrescription ,uploadUser ,uploadBanner };

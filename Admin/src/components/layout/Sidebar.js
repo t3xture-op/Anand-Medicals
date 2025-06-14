@@ -14,6 +14,8 @@ import {
   Bell, 
   X,
   LogOut,
+  GalleryHorizontal,
+  CopyMinus
   
 } from 'lucide-react';
 
@@ -28,12 +30,14 @@ const Sidebar = ({ closeSidebar }) => {
 
   const navItems = [
     { path: '/', icon: <Home size={20} />, label: 'Dashboard' },
+    { path: '/category', icon: <ShoppingBag size={20} />, label: 'Category' },
+    { path: '/sub-category', icon: <CopyMinus size={20} />, label: 'Sub Category' },
     { path: '/products', icon: <Package size={20} />, label: 'Products' },
-    { path: '/category', icon: <ShoppingBag size={20} />, label: 'category' },
     { path: '/orders', icon: <ShoppingCart  size={20}/>, label: 'Orders' },
     { path: '/users', icon: <Users size={20} />, label: 'Users' },
     { path: '/prescriptions', icon: <FileText size={20} />, label: 'Prescriptions' },
     { path: '/offers', icon: <Tag size={20} />, label: 'Offers & Discounts' },
+    { path: '/banner', icon: <GalleryHorizontal size={20} />, label: 'Banners' },
     { path: '/reports', icon: <BarChart2 size={20} />, label: 'Reports' },
     { path: '/notifications', icon: <Bell size={20} />, label: 'Notifications' },
   ];
