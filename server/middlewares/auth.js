@@ -6,6 +6,7 @@ dotenv.config();
 
 const auth = async (req, res, next) => {
   try {
+
     const token =
       req.cookies.accessToken ||
       req.headers.authorization?.split(' ')[1];

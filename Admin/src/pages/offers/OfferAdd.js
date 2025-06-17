@@ -56,7 +56,7 @@ export default function OfferAdd() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/offers/add', {
+      const response = await fetch('http://localhost:5000/api/offer/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -75,7 +75,7 @@ export default function OfferAdd() {
       navigate('/offers');
     } catch (err) {
       console.log(err);
-      alert('Something went wrong');
+      alert('Something went wrong'.err);
       setIsSubmitting(false);
     }
   };

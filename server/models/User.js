@@ -18,6 +18,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  phone:{
+    type:Number,
+    default:""
+  },
+  dob:{
+    type:Date,
+    default:""
+  },
+  image:{
+    type:String,
+    default:""
+  },
   access_token: {
     type: String,
     default:""

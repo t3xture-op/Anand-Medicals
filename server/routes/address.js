@@ -1,5 +1,5 @@
 import express from 'express'
-import { getUserAddresses ,addAddress ,changeDefaultAddress ,getDefaultAddress } from "../controllers/addressController.js";
+import { getUserAddresses ,addAddress ,editAddress ,changeDefaultAddress ,getDefaultAddress ,deleteAddress} from "../controllers/addressController.js";
 import auth from '../middlewares/auth.js'
 const addressRouter = express.Router()
 
@@ -15,5 +15,11 @@ addressRouter.put('/edit-default/:id',auth,changeDefaultAddress)
 
 //get deafaut address
 addressRouter.get('/default',auth,getDefaultAddress);
+
+//edit an address
+addressRouter.put("/edit/:id", auth, editAddress);
+
+//delete an address by a user
+addressRouter.delete("/delete/:id", auth, deleteAddress);
 
 export default addressRouter

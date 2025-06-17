@@ -10,7 +10,7 @@ import Order from "../models/Order.js";
 import { notificationEmitter } from "../routes/notification.js";
 import { v2 as cloudinary } from 'cloudinary';
 import { extractPublicId } from 'cloudinary-build-url';
-import bcrypt from 'bcryptjs';
+
 
 //register a user
 export async function userRegistration(req, res) {
@@ -95,11 +95,13 @@ export async function userLogin(req, res) {
           name: user.name,
           email: user.email,
           role: user.role,
+          image: user.image
         },
       },
     });
   } catch (error) {
     res.status(500).json({ message: "Error logging in", error: error.message });
+ 
   }
 }
 
@@ -227,14 +229,16 @@ export async function getAllUsers(req, res) {
 }
 
 
-//get user by id
+//get user by id(admin)
 export async function getUserId(req, res) {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const id = req.params.id;
+    if (!id) return res.status(400).json({ message: "User ID is required" });
+
+    const user = await User.findById(id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Get user's orders
-    const userOrders = await Order.find({ user: req.params.id });
+    const userOrders = await Order.find({ user: id });
 
     res.status(200).json({ user, orders: userOrders });
   } catch (error) {
@@ -243,14 +247,13 @@ export async function getUserId(req, res) {
   }
 }
 
-
 //update profile
 export const updateProfile = async (req, res) => {
   try {
-    const { name, email, phone, gender, dob } = req.body;
+    const { name, email, phone,  dob } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      { name, email, phone, gender, dob },
+      { name, email, phone, dob },
       { new: true }
     ).select('-password');
 
@@ -259,54 +262,110 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Failed to update profile' });
   }
 };
-//upload photo
 
-export const uploadProfilePhoto = async (req, res) => {
+//upload photo
+export async function uploadProfilePhoto(req, res) {
   try {
-    // Use multer or cloudinary file upload
-    const imageUrl = req.body.image; // Assume Cloudinary link from frontend
-    const updated = await User.findByIdAndUpdate(
-      req.user._id,
-      { profileImage: imageUrl },
+    const userId = req.user._id;
+
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    const imageUrl = req.file.path;
+
+    // ✅ Correct field name: "image"
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { image: imageUrl },
       { new: true }
     );
-    res.json({ message: 'Profile photo updated', image: updated.profileImage });
+
+    res.status(200).json({
+      message: "Profile photo uploaded successfully",
+      imageUrl: updatedUser.image, // Match your schema
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to upload profile photo' });
+    console.error("Upload Profile Photo Error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
-};
+}
 
 //delete photo
+
 export const deleteProfilePhoto = async (req, res) => {
   try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const imageUrl = user.image;
+
+    // Delete from Cloudinary only if there's an existing image
+    if (imageUrl) {
+      const publicId = extractPublicId(imageUrl);
+      await cloudinary.uploader.destroy(publicId);
+    }
+
+    // Remove image reference from DB
     const updated = await User.findByIdAndUpdate(
       req.user._id,
-      { profileImage: '' },
+      { image: '' },
       { new: true }
     );
-    res.json({ message: 'Profile photo removed' });
+
+    res.json({ message: 'Profile photo removed', image: updated.image });
   } catch (err) {
+    console.error("Cloudinary Delete Error:", err);
     res.status(500).json({ message: 'Failed to delete profile photo' });
   }
 };
+
 
 //change password from profile
 
 export const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
+
     const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     const isMatch = await user.comparePassword(oldPassword);
     if (!isMatch) {
       return res.status(400).json({ message: 'Old password is incorrect' });
     }
 
-    user.password = newPassword;
+    user.password = newPassword; // Will be hashed by pre-save hook
     await user.save();
 
-    res.json({ message: 'Password updated successfully' });
+    res.status(200).json({ message: 'Password updated successfully' });
   } catch (err) {
+    console.error("Password change error:", err);
     res.status(500).json({ message: 'Error changing password' });
+  }
+};
+
+
+//get user for user
+export const getMyProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // populated by auth middleware
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+     return res.json({
+      id: user._id,
+      name: user.name,
+      image:user.image,
+      email: user.email,
+      phone: user.phone,
+      dob: user.dob,
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };

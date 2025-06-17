@@ -385,12 +385,18 @@ const OrderDetail = () => {
                             {item.product?.name || "Product"}
                           </h3>
                           <p className="mt-1 text-sm text-gray-500">
-                            Qty: {item.quantity}
+                            Quantity: {item.quantity} × ₹
+                            {item.product.discount_price?.toFixed(2) ||
+                              item.price.toFixed(2)}
                           </p>
                         </div>
                         <p className="text-sm font-medium text-gray-900">
-                          ₹{(item.price * item.quantity).toFixed(2)}
-                        </p>
+                                ₹
+                                {(
+                                  item.quantity *
+                                  (item.product.discount_price || item.price)
+                                ).toFixed(2)}
+                              </p>
                       </div>
                     </div>
                   </div>
@@ -428,7 +434,7 @@ const OrderDetail = () => {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium text-gray-800">Customer</h2>
                 <Link
-                  to={`/users/${order.user}`}
+                  to={`/users/${order.user._id}`}
                   className="text-sm font-medium text-blue-600 hover:text-blue-500"
                 >
                   View Profile

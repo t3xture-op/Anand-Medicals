@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { Bell, Menu, User } from 'lucide-react';
-import { Link ,useNavigate} from 'react-router-dom';
+import { Bell, Menu } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { toast } from 'sonner';
 
@@ -13,9 +13,8 @@ const Header = ({ title, toggleSidebar, user }) => {
 
   const notifRef = useRef();
   const userRef = useRef();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  // SSE connection for real-time notifications
   useEffect(() => {
     const evtSource = new EventSource('http://localhost:5000/api/notifications/stream');
     evtSource.onmessage = (e) => {
@@ -24,31 +23,30 @@ const Header = ({ title, toggleSidebar, user }) => {
         if (notif && notif._id) {
           setNotifications((prev) => [notif, ...prev]);
 
-           toast(notif.title, {
-          description: notif.message,
-          action: {
-            label: 'View',
-            onClick: () => {
-              switch (notif.type) {
-                case 'order':
-                  navigate(`/orders/${notif.targetId}`);
-                  break;
-                case 'prescription':
-                  navigate(`/prescriptions/${notif.targetId}`);
-                  break;
-                case 'stock':
-                  navigate(`/products/edit/${notif.targetId}`);
-                  break;
-                case 'user':
-                  navigate(`/users/${notif.targetId}`);
-                  break;
-                default:
-                  navigate('/notifications');
-              }
+          toast(notif.title, {
+            description: notif.message,
+            action: {
+              label: 'View',
+              onClick: () => {
+                switch (notif.type) {
+                  case 'order':
+                    navigate(`/orders/${notif.targetId}`);
+                    break;
+                  case 'prescription':
+                    navigate(`/prescriptions/${notif.targetId}`);
+                    break;
+                  case 'stock':
+                    navigate(`/products/edit/${notif.targetId}`);
+                    break;
+                  case 'user':
+                    navigate(`/users/${notif.targetId}`);
+                    break;
+                  default:
+                    navigate('/notifications');
+                }
+              },
             },
-          },
-        });
-       
+          });
         }
       } catch (err) {
         console.error('Invalid SSE data:', e.data);
@@ -62,12 +60,10 @@ const Header = ({ title, toggleSidebar, user }) => {
     return () => evtSource.close();
   }, []);
 
-  // calculate unread count
   useEffect(() => {
     setUnreadCount(notifications.filter((n) => !n.isRead).length);
   }, [notifications]);
 
-  // Outside click handler
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
@@ -172,37 +168,52 @@ const Header = ({ title, toggleSidebar, user }) => {
           )}
         </div>
 
-        {/* User menu */}
+        {/* User menu or Login */}
         <div className="relative" ref={userRef}>
-          <button
-            className="flex items-center rounded-full text-sm focus:outline-none"
-            onClick={handleUserToggle}
-          >
-            <User className="w-6 h-6 cursor-pointer hover:bg-gray-100 hover:text-gray-600" />
-          </button>
-          {showUserMenu && (
-            <div className="absolute right-0 top-full mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-              <div className="border-b border-gray-100 px-4 py-2">
-                <p className="text-sm font-medium text-gray-700">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </div>
-              <Link
-                to="/my-account"
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                onClick={() => setShowUserMenu(false)}
-              >
-                My Account
-              </Link>
-              <button
-                onClick={() => {
-                  logout();
-                  setShowUserMenu(false);
-                }}
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-              >
-                Sign out
-              </button>
-            </div>
+          {user ? (
+            <>
+              <img
+                src={
+                  user?.image
+                    ? user.image
+                    : 'https://ui-avatars.com/api/?name=User&background=E2E8F0&color=2D3748&size=64'
+                }
+                alt="User Avatar"
+                onClick={handleUserToggle}
+                className="w-8 h-8 rounded-full object-cover border-2 border-white cursor-pointer hover:opacity-80 transition-opacity"
+              />
+              {showUserMenu && (
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="border-b border-gray-100 px-4 py-2">
+                    <p className="text-sm font-medium text-gray-700">{user?.name}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  </div>
+                  <Link
+                    to="/my-account"
+                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    My Account
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setShowUserMenu(false);
+                    }}
+                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={() => navigate("/login")}
+              className="text-sm px-3 py-1 rounded hover:bg-gray-100 border border-gray-200"
+            >
+              Login
+            </button>
           )}
         </div>
       </div>

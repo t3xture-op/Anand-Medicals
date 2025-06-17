@@ -42,7 +42,8 @@ const userStorage = new CloudinaryStorage({
   cloudinary,
   params:{
     folder : 'users',
-    allowed_fromates: ['jpg','jpeg','png']
+    allowed_fromates: ['jpg','jpeg','png'],
+     transformation: [{ width: 300, height: 300, crop: "limit" }],
   }
 })
 

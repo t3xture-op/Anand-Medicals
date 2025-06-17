@@ -1,4 +1,6 @@
 import Offer from '../models/offers.js';
+import Product from '../models/Product.js'
+import { applyActiveOfferToProduct } from '../utils/applyActiveOfferToProduct.js';
 
 // Add Offer
 export const addOffer = async (req, res) => {
@@ -66,15 +68,28 @@ export async function getOfferById(req, res) {
 //get Active offers
 export async function getActiveOffer(req, res) {
   try {
-    const offers = await Offer.find({ status: "active" }).populate('products'); 
+    const offers = await Offer.find({ status: "active" }).populate('products');
     if (!offers || offers.length === 0) {
       return res.status(404).json({ message: "No active offers" });
     }
 
-    res.status(200).json(offers);
+    // Apply offer price to each product in each offer
+    const updatedOffers = await Promise.all(offers.map(async (offer) => {
+      const updatedProducts = await Promise.all(
+        offer.products.map((product) => applyActiveOfferToProduct(product))
+      );
+
+      return {
+        ...offer.toObject(),
+        products: updatedProducts
+      };
+    }));
+
+    res.status(200).json(updatedOffers);
   } catch (error) {
     console.error('Error fetching offer:', error);
     res.status(500).json({ message: 'Failed to fetch offers', error: error.message });
   }
 }
+
 

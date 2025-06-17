@@ -1,5 +1,6 @@
 import Cart from '../models/Cart.js'
 import Product from '../models/Product.js';
+import Offer from '../models/offers.js'
 
 //add item to cart
 export async function addItemToCart(req, res) {
@@ -50,24 +51,57 @@ export async function addItemToCart(req, res) {
 
 
 
-//get cart item 
-export async function getCartItem(req,res){
-   try {
-    const userId =  req.user._id;
+//helper funtion to check offer prices
+export async function applyActiveOfferToProduct(product) {
+  const activeOffers = await Offer.find({ status: 'active' }).populate('products');
+
+  for (const offer of activeOffers) {
+    const match = offer.products.find(p => p._id.toString() === product._id.toString());
+    if (match) {
+      const discountAmount = (product.price * offer.discount) / 100;
+      product = product.toObject();
+      product.discount = offer.discount;
+      product.discount_price = Math.round((product.price - discountAmount) * 100) / 100;
+      return product;
+    }
+  }
+
+  return product.toObject();
+}
+
+// getCartItem
+export async function getCartItem(req, res) {
+  try {
+    const userId = req.user._id;
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
-    return res.json({ cartItems: cart.items });
+
+    const updatedItems = await Promise.all(
+      cart.items.map(async (item) => {
+        if (!item.product) return null; // Handle missing/deleted product gracefully
+
+        const updatedProduct = await applyActiveOfferToProduct(item.product);
+        return {
+          ...item.toObject(),
+          product: updatedProduct
+        };
+      })
+    );
+
+    const filteredItems = updatedItems.filter((item) => item !== null);
+
+    return res.json({ cartItems: filteredItems });
   } catch (error) {
+    console.error("Error fetching cart:", error);
     return res.status(400).json({
       message: 'Error fetching cart items',
       error: error.message
     });
   }
 }
-
 
 
 

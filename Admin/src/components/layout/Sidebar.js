@@ -15,7 +15,8 @@ import {
   X,
   LogOut,
   GalleryHorizontal,
-  CopyMinus
+  CopyMinus,
+  MessageSquare
   
 } from 'lucide-react';
 
@@ -40,6 +41,7 @@ const Sidebar = ({ closeSidebar }) => {
     { path: '/banner', icon: <GalleryHorizontal size={20} />, label: 'Banners' },
     { path: '/reports', icon: <BarChart2 size={20} />, label: 'Reports' },
     { path: '/notifications', icon: <Bell size={20} />, label: 'Notifications' },
+    { path: '/feedback', icon: <MessageSquare size={20} />, label: 'Feedback' },
   ];
 
   return (

@@ -17,6 +17,7 @@ import cookieParser from 'cookie-parser';
 import offerRoutes from './routes/offer.js';
 import bannerRoutes from './routes/banner.js'
 import subCategoryRoutes from './routes/subCategory.js'
+import feedbackRoutes from './routes/feedback.js'
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/notifications',notificationRoutes);
 app.use('/api/banner',bannerRoutes)
 app.use('/api/subcategory', subCategoryRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

@@ -1,271 +1,539 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Pencil, Trash2, MapPin, Package, Lock, User, Plus, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Camera,
+  Mail,
+  Phone,
+  Edit3,
+  Trash2,
+  Save,
+  Shield,
+  Lock,
+  Smartphone,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import Address from "../components/Address";
+import { toast } from "sonner";
 
-const MyAccount = () => {
-  const [user, setUser] = useState({});
-  const [addresses, setAddresses] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [profilePic, setProfilePic] = useState('');
+export default function MyAccount() {
+  const [profileImage, setProfileImage] = useState(null);
+  const [placeholders, setPlaceholders] = useState({
+    phone: false,
+    dob: false,
+  });
+  const [userData, setUserData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    dob: "",
+    image: "",
+  });
+
+  const [securitySettings, setSecuritySettings] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+    twoFactorAuth: false,
+    trustedDevices: 0,
+  });
   const [preview, setPreview] = useState(null);
-  const [password, setPassword] = useState({ old: '', new: '', confirm: '' });
-
-  const sections = {
-    profile: useRef(null),
-    orders: useRef(null),
-    addresses: useRef(null),
-    password: useRef(null),
-  };
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null); // to track uploaded file
 
   useEffect(() => {
-    // Load user data
-    fetch('http://localhost:5000/api/user/get/:id', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        setUser(data);
-        setProfilePic(data.profilePic || '');
-      });
+    (async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/user/me", {
+          credentials: "include",
+        });
+        const data = await res.json();
 
-    // Load user orders
-    fetch('http://localhost:5000/api/orders/my')
-      .then(res => res.json())
-      .then(data => setOrders(data));
+        if (data) {
+          const isoDob = data.dob
+            ? new Date(data.dob).toISOString().split("T")[0]
+            : "";
+          setUserData({
+            fullName: data.name || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            image: data.image || "",
+            dob: isoDob || "",
+          });
+          setPlaceholders({
+            phone: !data.phone,
+            dob: !data.dob,
+          });
 
-    // Load addresses
-    fetch('http://localhost:5000/api/address', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setAddresses(data));
+          setPreview(data.image || "");
+          setProfileImage(data.image || "")
+        }
+      } catch (err) {
+        console.error("Failed to fetch user data:", err);
+        alert(err);
+      }
+    })();
   }, []);
 
-  const scrollTo = (section) => {
-    sections[section].current.scrollIntoView({ behavior: 'smooth' });
+  const handleChange = (field, value) => {
+    setUserData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleUpdateProfile = async () => {
-    const res = await fetch('http://localhost:5000/api/user/update', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user),
-    });
-    const data = await res.json();
-    alert(data.message || 'Profile updated');
+  const handleSecurityChange = (field, value) => {
+    setSecuritySettings((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePhotoUpload = async (e) => {
+  const handleSave = async () => {
+    try {
+      await fetch("http://localhost:5000/api/user/update-profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: userData.fullName,
+          phone: userData.phone,
+          dob: userData.dob,
+          email: userData.email,
+        }),
+      });
+      alert("Profile updated successfully!");
+    } catch (error) {
+      alert("error updating profile", error);
+    }
+  };
+
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) {
+      setSelectedImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSetProfilePhoto = async () => {
+    if (!selectedImage) return;
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/JPG"];
+    if (!allowedTypes.includes(selectedImage.type)) {
+      toast.error("Only JPG or PNG images are allowed");
+      return;
+    }
+
+    if (selectedImage.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", selectedImage);
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/user/upload-profile-photo",
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include", // if you're using cookies for auth
+        }
+      );
 
-    const res = await fetch('http://localhost:5000/api/user/profile-photo', {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await res.json();
-    if (res.ok) setProfilePic(data.url);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Failed to upload");
+
+      window.location.reload();
+      toast.success("Profile photo updated!");
+      setProfileImage(data.imageUrl);
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error(err.message);
+    }
   };
 
-  const handlePhotoDelete = async () => {
-    await fetch('http://localhost:5000/api/user/profile-photo', { method: 'DELETE' });
-    setProfilePic('');
-  };
+  const handleDeletePhoto = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/user/delete-profile-photo",
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete image");
 
-  const handleAddAddress = async () => {
-    const street = prompt('Enter new address');
-    if (!street) return;
-    const res = await fetch('http://localhost:5000/api/address/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ street }),
-    });
-    const data = await res.json();
-    setAddresses(prev => [...prev, data]);
-  };
-
-  const handleSetDefault = async (id) => {
-    await fetch(`http://localhost:5000/api/address/edit-default/${id}`, { method: 'PUT' });
-    const updated = await fetch('http://localhost:5000/api/address').then(res => res.json());
-    setAddresses(updated);
-  };
-
-  const handleDeleteAddress = async (id) => {
-    if (!window.confirm('Delete this address?')) return;
-    await fetch(`http://localhost:5000/api/address/delete/${id}`, { method: 'DELETE' });
-    const updated = await fetch('http://localhost:5000/api/address').then(res => res.json());
-    setAddresses(updated);
+      setPreview(null);
+      setSelectedImage(null);
+      toast.success("Profile photo Deleted!");
+    } catch (err) {
+      console.log("Upload error:", err);
+      toast.error(err.message);
+    }
   };
 
   const handlePasswordChange = async () => {
-    if (password.new !== password.confirm) return alert('Passwords do not match');
-    const res = await fetch('http://localhost:5000/api/user/change-password', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(password),
-    });
-    const data = await res.json();
-    if (res.ok) alert('Password updated');
-    else alert(data.message || 'Failed to update password');
+    const { currentPassword, newPassword, confirmPassword } = securitySettings;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return toast.error("Please fill all password fields.");
+    }
+
+    if (newPassword !== confirmPassword) {
+      return toast.error("New password and confirmation do not match.");
+    }
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/user/change-password",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            oldPassword: currentPassword,
+            newPassword: newPassword,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Password update failed");
+
+      toast.success(data.message);
+      setSecuritySettings({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+        ...securitySettings,
+      });
+    } catch (err) {
+      toast.error(err.message);
+    }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r p-6 space-y-6 shadow-sm">
-        <button className="w-full text-left" onClick={() => scrollTo('profile')}>
-          👤 My Profile
-        </button>
-        <button className="w-full text-left" onClick={() => scrollTo('orders')}>
-          📦 My Orders
-        </button>
-        <button className="w-full text-left" onClick={() => scrollTo('addresses')}>
-          📍 My Addresses
-        </button>
-        <button className="w-full text-left" onClick={() => scrollTo('password')}>
-          🔒 Change Password
-        </button>
-      </aside>
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      {/* Personal Information Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-8">
+            <User className="text-green-600" size={24} />
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Personal Information
+            </h2>
+          </div>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-10 space-y-16">
-        {/* Profile Section */}
-        <section ref={sections.profile} className="bg-white p-6 rounded shadow space-y-4">
-          <div className="flex flex-col items-center">
-            <div className="relative">
-              <img
-                src={profilePic || '/placeholder-avatar.png'}
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover border"
-              />
-              <label className="absolute bottom-1 right-1 bg-white p-1 rounded-full shadow cursor-pointer">
-                <Pencil size={16} />
-                <input type="file" hidden onChange={handlePhotoUpload} />
-              </label>
-              {profilePic && (
-                <button
-                  className="absolute top-1 right-1 bg-white p-1 rounded-full shadow text-red-500"
-                  onClick={handlePhotoDelete}
-                >
-                  <Trash2 size={16} />
-                </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Profile Image Section */}
+            <div className="text-center">
+              <p className="text-sm text-gray-500 mt-2">
+                Only JPG or PNG images under 5MB are allowed.
+              </p>
+              <div className="relative inline-block">
+                <div className="w-32 h-32 mt-20 rounded-full overflow-hidden border-4 border-green-200 bg-green-50 flex items-center justify-center">
+                  {preview || profileImage ? (
+                    <img
+                      src={preview || profileImage}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User size={48} className="text-green-600" />
+                  )}
+                </div>
+
+                {!profileImage && (
+                  <label
+                    htmlFor="profile-upload"
+                    className="absolute bottom-0 right-0 bg-green-600 p-2 rounded-full cursor-pointer hover:bg-green-700"
+                  >
+                    <Camera size={16} className="text-white" />
+                    <input
+                      type="file"
+                      id="profile-upload"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+                <>
+                  {selectedImage && (
+                    <button
+                      onClick={handleSetProfilePhoto}
+                      className="absolute bottom-[-4rem] right-0 bg-blue-600 px-3 py-1 text-sm text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Set as Profile Photo
+                    </button>
+                  )}
+
+                  {(preview || profileImage) && (
+                    <button
+                      onClick={handleDeletePhoto}
+                      className="absolute top-7 right-0 bg-red-600 mt-12 p-2 rounded-full text-white hover:bg-red-700"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </>
+              </div>
+            </div>
+
+            {/* Personal Info Form */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <User
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    value={userData.fullName}
+                    onChange={(e) => handleChange("fullName", e.target.value)}
+                    placeholder="Enter your name"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="email"
+                    value={userData.email}
+                    disabled
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="tel"
+                    value={userData.phone}
+                    onChange={(e) => handleChange("phone", e.target.value)}
+                    placeholder={
+                      placeholders.phone ? "Add your mobile number" : ""
+                    }
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={userData.dob}
+                  onChange={(e) => handleChange("dob", e.target.value)}
+                  placeholder={placeholders.dob ? "Add your date of birth" : ""}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="border-t border-gray-200 px-8 py-4">
+          <div className="flex justify-end">
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              <Save size={18} />
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Address Information Section */}
+      <Address />
+
+      {/* Security Settings Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-8">
+            <Shield className="text-green-600" size={24} />
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Security Settings
+            </h2>
+          </div>
+
+          {/* Password Settings */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Change Password
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <Lock
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type={showCurrent ? "text" : "password"}
+                    autoComplete="new-password"
+                    name="current-password-unique"
+                    value={securitySettings.currentPassword}
+                    onChange={(e) =>
+                      handleSecurityChange("currentPassword", e.target.value)
+                    }
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Enter current password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <Lock
+                      className="absolute left-3 top-3 text-gray-400"
+                      size={18}
+                    />
+                    <input
+                      type={showNew ? "text" : "password"}
+                      value={securitySettings.newPassword}
+                      onChange={(e) =>
+                        handleSecurityChange("newPassword", e.target.value)
+                      }
+                      className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Enter new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNew(!showNew)}
+                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    >
+                      {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Lock
+                      className="absolute left-3 top-3 text-gray-400"
+                      size={18}
+                    />
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      value={securitySettings.confirmPassword}
+                      onChange={(e) =>
+                        handleSecurityChange("confirmPassword", e.target.value)
+                      }
+                      className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Confirm new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Two-Factor Authentication */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Two-Factor Authentication
+            </h3>
+            <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Smartphone className="text-green-600" size={20} />
+                  <div>
+                    <p className="font-medium text-green-800">
+                      Two-Factor Authentication
+                    </p>
+                    <p className="text-sm text-green-600">
+                      Add an extra layer of security to your account
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={securitySettings.twoFactorAuth}
+                    onChange={(e) =>
+                      handleSecurityChange("twoFactorAuth", e.target.checked)
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                </label>
+              </div>
+              {securitySettings.twoFactorAuth && (
+                <div className="text-sm text-green-700">
+                  <p>✓ Two-factor authentication is enabled</p>
+                  <p className="mt-1">
+                    Trusted devices: {securitySettings.trustedDevices}
+                  </p>
+                </div>
               )}
             </div>
-            <div className="mt-6 w-full max-w-md space-y-4">
-              <input
-                className="input"
-                placeholder="Name"
-                value={user.name || ''}
-                onChange={e => setUser({ ...user, name: e.target.value })}
-              />
-              <input
-                className="input"
-                placeholder="Email"
-                value={user.email || ''}
-                onChange={e => setUser({ ...user, email: e.target.value })}
-              />
-              <input
-                className="input"
-                placeholder="Phone"
-                value={user.phone || ''}
-                onChange={e => setUser({ ...user, phone: e.target.value })}
-              />
-              <input
-                className="input"
-                placeholder="Gender"
-                value={user.gender || ''}
-                onChange={e => setUser({ ...user, gender: e.target.value })}
-              />
-              <input
-                type="date"
-                className="input"
-                value={user.dob || ''}
-                onChange={e => setUser({ ...user, dob: e.target.value })}
-              />
-              <button className="btn btn-primary w-full" onClick={handleUpdateProfile}>
-                Save Changes
-              </button>
-            </div>
           </div>
-        </section>
+        </div>
 
-        {/* Orders Section */}
-        <section ref={sections.orders} className="bg-white p-6 rounded shadow space-y-4">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Package size={20} /> My Orders
-          </h2>
-          {orders.map(order => (
-            <div key={order._id} className="border p-3 rounded flex justify-between items-center">
-              <div>
-                <div className="font-medium">Order ID: {order._id}</div>
-                <div className="text-sm text-gray-500">Total: ₹{order.totalAmount}</div>
-              </div>
-              <div className="text-sm text-blue-600">{order.status}</div>
-            </div>
-          ))}
-          {orders.length === 0 && <p className="text-gray-500">No orders found.</p>}
-        </section>
-
-        {/* Address Section */}
-        <section ref={sections.addresses} className="bg-white p-6 rounded shadow space-y-4">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <MapPin size={20} /> My Addresses
-          </h2>
-          <button onClick={handleAddAddress} className="btn btn-sm btn-outline flex items-center gap-1">
-            <Plus size={16} /> Add Address
-          </button>
-          {addresses.map(addr => (
-            <div key={addr._id} className="flex justify-between items-center border p-2 rounded">
-              <div>{addr.street}</div>
-              <div className="flex gap-2">
-                {!addr.isDefault && (
-                  <button onClick={() => handleSetDefault(addr._id)} className="text-blue-600 text-sm">
-                    Set Default
-                  </button>
-                )}
-                <button onClick={() => handleDeleteAddress(addr._id)} className="text-red-600 text-sm">
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </section>
-
-        {/* Password Section */}
-        <section ref={sections.password} className="bg-white p-6 rounded shadow space-y-4">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Lock size={20} /> Change Password
-          </h2>
-          <div className="w-full max-w-md space-y-4">
-            <input
-              className="input"
-              placeholder="Old Password"
-              type="password"
-              value={password.old}
-              onChange={e => setPassword({ ...password, old: e.target.value })}
-            />
-            <input
-              className="input"
-              placeholder="New Password"
-              type="password"
-              value={password.new}
-              onChange={e => setPassword({ ...password, new: e.target.value })}
-            />
-            <input
-              className="input"
-              placeholder="Confirm New Password"
-              type="password"
-              value={password.confirm}
-              onChange={e => setPassword({ ...password, confirm: e.target.value })}
-            />
-            <button className="btn btn-primary w-full" onClick={handlePasswordChange}>
-              Update Password
+        {/* Save Button */}
+        <div className="border-t border-gray-200 px-8 py-4">
+          <div className="flex justify-end">
+            <button
+              onClick={handlePasswordChange}
+              className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              <Save size={18} />
+              Save Changes
             </button>
-            <a href="/forgot-password" className="text-sm text-blue-500 underline">
-              Forgot password?
-            </a>
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default MyAccount;
+}

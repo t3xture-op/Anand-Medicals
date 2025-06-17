@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { Package, Truck, CheckCircle, Clock, Search, XCircle } from 'lucide-react';
-
+import React, { useEffect, useState } from "react";
+import {
+  Package,
+  Truck,
+  CheckCircle,
+  Clock,
+  Search,
+  XCircle,
+} from "lucide-react";
 
 const getStatusIcon = (status) => {
   switch (status) {
-    case 'processing':
+    case "processing":
       return <Clock className="w-5 h-5 text-blue-500" />;
-    case 'shipped':
+    case "shipped":
       return <Truck className="w-5 h-5 text-orange-500" />;
-    case 'delivered':
+    case "delivered":
       return <CheckCircle className="w-5 h-5 text-green-500" />;
-    case 'cancelled':
+    case "cancelled":
       return <Package className="w-5 h-5 text-red-500" />;
-    case 'pending':
+    case "pending":
       return <Clock className="w-5 h-5 text-yellow-500" />;
     default:
       return null;
@@ -21,40 +27,40 @@ const getStatusIcon = (status) => {
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'processing':
-      return 'bg-blue-100 text-blue-800';
-    case 'shipped':
-      return 'bg-orange-100 text-orange-800';
-    case 'delivered':
-      return 'bg-green-100 text-green-800';
-    case 'cancelled':
-      return 'bg-red-100 text-red-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
+    case "processing":
+      return "bg-blue-100 text-blue-800";
+    case "shipped":
+      return "bg-orange-100 text-orange-800";
+    case "delivered":
+      return "bg-green-100 text-green-800";
+    case "cancelled":
+      return "bg-red-100 text-red-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };
 
 export default function Orders() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/orders/my', {
-        credentials: 'include',
+      const res = await fetch("http://localhost:5000/api/orders/my", {
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) {
-        console.error('❌ Error fetching orders:', data);
+        console.error("❌ Error fetching orders:", data);
         setOrders([]);
         return;
       }
       setOrders(data);
     } catch (error) {
-      console.error('❌ Network or parsing error:', error);
+      console.error("❌ Network or parsing error:", error);
       setOrders([]);
     } finally {
       setLoading(false);
@@ -62,17 +68,19 @@ export default function Orders() {
   };
 
   const handleCancelOrder = async (orderId) => {
-    const confirmCancel = window.confirm('Are you sure you want to cancel this order?');
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel this order?"
+    );
     if (!confirmCancel) return;
 
     try {
       await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
-        method: 'PATCH',
-        credentials: 'include',
+        method: "PATCH",
+        credentials: "include",
       });
       fetchOrders();
     } catch (error) {
-      console.error('Error cancelling order', error);
+      console.error("Error cancelling order", error);
     }
   };
 
@@ -80,9 +88,12 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  const filteredOrders = orders.filter(order =>
-    order._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.items.some(item => item.product.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredOrders = orders.filter(
+    (order) =>
+      order._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.items.some((item) =>
+        item.product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   );
 
   return (
@@ -109,7 +120,9 @@ export default function Orders() {
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <Package className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No orders found</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              No orders found
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
               We couldn't find any orders matching your search.
             </p>
@@ -117,7 +130,10 @@ export default function Orders() {
         ) : (
           <div className="space-y-6">
             {filteredOrders.map((order) => (
-              <div key={order._id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div
+                key={order._id}
+                className="bg-white rounded-lg shadow-sm overflow-hidden"
+              >
                 <div className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
@@ -125,19 +141,30 @@ export default function Orders() {
                         <h2 className="text-lg font-semibold text-gray-900">
                           Order #{order._id}
                         </h2>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                            order.status
+                          )}`}
+                        >
                           {getStatusIcon(order.status)}
-                          <span className="ml-1 capitalize">{order.status}</span>
+                          <span className="ml-1 capitalize">
+                            {order.status}
+                          </span>
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
-                        Placed on {new Date(order.createdAt).toLocaleDateString()}
+                        Placed on{" "}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-semibold text-gray-900">₹{order.totalAmount.toFixed(2)}</p>
-                      <p className="text-sm text-gray-500">{order.paymentMethod}</p>
-                      {order.status === 'pending' && (
+                      <p className="text-lg font-semibold text-gray-900">
+                        ₹{order.totalAmount.toFixed(2)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {order.paymentMethod}
+                      </p>
+                      {order.status === "pending" && (
                         <button
                           onClick={() => handleCancelOrder(order._id)}
                           className="mt-2 inline-flex items-center px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded hover:bg-red-200"
@@ -153,23 +180,37 @@ export default function Orders() {
                     <h3 className="text-sm font-medium text-gray-900">Items</h3>
                     <div className="mt-2 divide-y divide-gray-200">
                       {order.items.map((item) => {
-                        const imgUrl = item.product.image || '/placeholder.jpg';
+                        const imgUrl = item.product.image || "/placeholder.jpg";
+                        const discountedPrice =
+                          item.product.offer?.discount_price;
+                        const finalPrice = discountedPrice ?? item.price;
                         return (
-                          <div key={item._id} className="py-4 flex items-center">
+                          <div
+                            key={item._id}
+                            className="py-4 flex items-center"
+                          >
                             <img
                               src={imgUrl}
                               alt={item.product.name}
                               className="h-16 w-16 object-cover rounded-md"
                             />
                             <div className="ml-4 flex-1">
-                              <h4 className="text-sm font-medium text-gray-900">{item.product.name}</h4>
+                              <h4 className="text-sm font-medium text-gray-900">
+                                {item.product.name}
+                              </h4>
                               <p className="mt-1 text-sm text-gray-500">
-                                Quantity: {item.quantity} × ₹{item.price.toFixed(2)}
+                                Quantity: {item.quantity} × ₹
+                                {item.product.discount_price?.toFixed(2) ||
+                                  item.price.toFixed(2)}
                               </p>
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium text-gray-900">
-                                ₹{(item.quantity * item.price).toFixed(2)}
+                                ₹
+                                {(
+                                  item.quantity *
+                                  (item.product.discount_price || item.price)
+                                ).toFixed(2)}
                               </p>
                             </div>
                           </div>
@@ -179,11 +220,20 @@ export default function Orders() {
                   </div>
 
                   <div className="mt-6">
-                    <h3 className="text-sm font-medium text-gray-900">Shipping Address</h3>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      Shipping Address
+                    </h3>
                     <address className="mt-2 text-sm text-gray-500 not-italic">
-                      {order.shippingAddress.fullName}<br />
-                      {order.shippingAddress.addressLine1}<br />
-                      {order.shippingAddress.addressLine2 && `${order.shippingAddress.addressLine2}, `}{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}<br />
+                      {order.shippingAddress.fullName}
+                      <br />
+                      {order.shippingAddress.addressLine1}
+                      <br />
+                      {order.shippingAddress.addressLine2 &&
+                        `${order.shippingAddress.addressLine2}, `}
+                      {order.shippingAddress.city},{" "}
+                      {order.shippingAddress.state} -{" "}
+                      {order.shippingAddress.pincode}
+                      <br />
                       Phone: {order.shippingAddress.phoneNumber}
                     </address>
                   </div>

@@ -20,7 +20,7 @@ export default function PaymentSuccess() {
         <div className="flex flex-col items-center">
           <CheckCircle className="w-20 h-20 text-green-500" />
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Payment Successful!
+            Order Successful!
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Thank you for your purchase. Your order has been confirmed.

@@ -1,5 +1,9 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom'; // removed BrowserRouter
+import { Toaster } from 'sonner';
+
+
+
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -24,6 +28,7 @@ import SubCategoryProducts from './pages/SubCategoryProducts';
 function App() {
   return (
     <div className=" bg-gray-50 flex flex-col">
+       <Toaster richColors position="top-center" />
       <Navbar />
       <div className="flex-grow">
         <Routes>

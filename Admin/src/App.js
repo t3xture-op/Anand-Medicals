@@ -30,6 +30,7 @@ import SubCategoryList from './pages/subcategories/SubCategoryList'
 import SubCategoryEdit from './pages/subcategories/subCategoryEdit'
 import SubCategoryAdd from './pages/subcategories/subCategoryAdd';
 import MyAccount from './pages/MyAccount'
+import Feedback from './pages/feedback/Feedback';
 
 
 // Protected Route Component
@@ -102,6 +103,7 @@ function App() {
           {/* Other Routes */}
           <Route path="reports" element={<Reports />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="feedback" element={<Feedback />} />
         </Route>
       </Routes>
     </Router>

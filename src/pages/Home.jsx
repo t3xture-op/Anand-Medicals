@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import ApprovedFeedbacksDisplay from "../components/ApprovedFeedbacksDisplay";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -102,8 +103,9 @@ export default function Home() {
       </div>
 
       {/* Offers */}
+
       {offers.length > 0 && (
-        <div className="max-w-7xl mx-auto  px-4 sm:px-6 lg:px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <h1 className="font-bold text-gray-900 text-2xl pb-4">
             Offers & Discounts
           </h1>
@@ -124,20 +126,29 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    {offer.products.map((productId) => (
-                      <div
-                        key={productId}
-                        className="border rounded-lg p-3 shadow-sm hover:shadow-md transition"
+                    {offer.products.map((product) => (
+                      <Link
+                        to={`/product/${product._id}`}
+                        key={product._id}
+                        className="border rounded-lg p-3 shadow-sm hover:shadow-md transition block"
                       >
                         <img
-                          src={productId.image}
-                          alt={productId.name}
+                          src={product.image}
+                          alt={product.name}
                           className="w-full h-32 object-cover rounded mb-2"
                         />
                         <h4 className="text-sm font-medium text-gray-800">
-                          {productId.name}
+                          {product.name}
                         </h4>
-                      </div>
+                        <div className="text-sm mt-1">
+                          <span className="text-red-600 font-semibold mr-2">
+                            ₹{product.discount_price}
+                          </span>
+                          <span className="text-gray-500 line-through">
+                            ₹{product.price}
+                          </span>
+                        </div>
+                      </Link>
                     ))}
                   </div>
 
@@ -153,7 +164,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
       {/* Carousel (dynamic banners) */}
       {banners.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -290,6 +300,11 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Approved User Feedbacks */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <ApprovedFeedbacksDisplay />
       </div>
     </>
   );

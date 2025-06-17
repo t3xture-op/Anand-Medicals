@@ -3,24 +3,69 @@ import Product from "../models/Product.js";
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
 import { notificationEmitter } from "../routes/notification.js";
+import { applyActiveOfferToProduct } from "../utils/applyActiveOfferToProduct.js"
+import Offer from "../models/offers.js";
+
 
 // Get all orders of a user
 export async function getAllOrdersOfUser(req, res) {
   try {
+    // Get all active offers first
+    const activeOffers = await Offer.find({ status: "active" }).select("products");
+
+    // Flatten product IDs that are on offer
+    const offerProductIds = new Set(
+      activeOffers.flatMap((offer) => offer.products.map((p) => p.toString()))
+    );
+
     const orders = await Order.find({ user: req.user._id })
-      .populate("items.product")
-      .populate("shippingAddress");
-    res.json(orders);
+      .populate({
+        path: "items.product",
+        select: "name image price discount discount_price",
+      })
+      .populate("shippingAddress")
+      .sort({ createdAt: -1 });
+
+    // Inject offer prices where applicable
+    const updatedOrders = await Promise.all(
+      orders.map(async (order) => {
+        const updatedItems = await Promise.all(
+          order.items.map(async (item) => {
+            if (
+              item.product &&
+              offerProductIds.has(item.product._id.toString())
+            ) {
+              const updatedProduct = await applyActiveOfferToProduct(
+                item.product
+              );
+              item.product = updatedProduct;
+            }
+            return item;
+          })
+        );
+
+        return {
+          ...order.toObject(),
+          items: updatedItems,
+        };
+      })
+    );
+
+    res.json(updatedOrders);
   } catch (error) {
+    console.error("Error fetching user orders:", error);
     res.status(500).json({ message: "Error fetching orders" });
   }
 }
 
+
+
 // Get order by ID
 export async function getOrderById(req, res) {
   try {
+    // Fetch order with populated references
     const order = await Order.findById(req.params.id)
-      .populate("items.product") // Populate full product
+      .populate("items.product")
       .populate("user", "name email")
       .populate("shippingAddress");
 
@@ -28,12 +73,38 @@ export async function getOrderById(req, res) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    res.json(order);
+    // Fetch active offers
+    const activeOffers = await Offer.find({ status: "active" }).select("products");
+
+    const offerProductIds = new Set(
+      activeOffers.flatMap((offer) => offer.products.map((p) => p.toString()))
+    );
+
+    // Apply active offer price to each product in the order
+    const updatedItems = await Promise.all(
+      order.items.map(async (item) => {
+        if (
+          item.product &&
+          offerProductIds.has(item.product._id.toString())
+        ) {
+          const updatedProduct = await applyActiveOfferToProduct(item.product);
+          item.product = updatedProduct;
+        }
+        return item;
+      })
+    );
+
+    // Return updated order
+    res.json({
+      ...order.toObject(),
+      items: updatedItems,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching order:", error);
     res.status(500).json({ message: "Error fetching order" });
   }
 }
+
 
 // Get all orders
 export const getAllOrders = async (req, res) => {

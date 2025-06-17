@@ -1,7 +1,8 @@
 import express from 'express';
 import multer from "multer";
-import { userRegistration,userLogin,forgotPassword,resetPassword,userLogout,verifyOtp,getAllUsers ,getUserId,updateProfile,uploadProfilePhoto,deleteProfilePhoto,changePassword} from "../controllers/userController.js";
+import { userRegistration ,userLogin ,forgotPassword ,resetPassword ,userLogout ,verifyOtp ,getAllUsers ,getUserId ,updateProfile ,uploadProfilePhoto ,deleteProfilePhoto ,changePassword ,getMyProfile} from "../controllers/userController.js";
 import auth from '../middlewares/auth.js'
+import { uploadUser } from '../middlewares/cloudinary.js';
 
 const userRouter = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -14,10 +15,11 @@ userRouter.post('/verify-otp',verifyOtp)
 userRouter.get('/logout',auth,userLogout)
 userRouter.get('/get',getAllUsers)
 userRouter.get('/get/:id',getUserId)
-userRouter.put('/profile', auth, updateProfile);
-userRouter.post('/upload-profile', auth, uploadProfilePhoto);
+userRouter.put('/update-profile', auth, updateProfile);
+userRouter.post('/upload-profile-photo',auth, uploadUser.single('image'), uploadProfilePhoto);
 userRouter.delete('/delete-profile-photo', auth, deleteProfilePhoto);
 userRouter.put('/change-password', auth, changePassword);
+userRouter.get("/me",auth,getMyProfile)
 
 
 export default userRouter;

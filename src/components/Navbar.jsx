@@ -4,6 +4,7 @@ import { ShoppingCart, User, FileUp, Package } from "lucide-react";
 import { useCartStore } from "../store/cartStore";
 import { AuthContext } from "../authContext";
 import SearchBar from "./SearchBar";
+import userPlaceholder from "../public/userPlaceholder.png";
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +40,6 @@ export default function Navbar() {
     navigate("/");
   };
 
-  // Close dropdown if click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -120,10 +120,30 @@ export default function Navbar() {
               </Link>
 
               <div className="relative" ref={userMenuRef}>
-                <User
-                  onClick={handleUserIconClick}
-                  className="w-6 h-6 cursor-pointer hover:text-green-200 transition-colors"
-                />
+                {isLoggedIn ? (
+                  <img
+                    src={user?.image ? user.image : userPlaceholder}
+                    alt="User Avatar"
+                    onClick={handleUserIconClick}
+                    className="w-9 h-9 mt-1 rounded-full object-cover  cursor-pointer hover:opacity-80 transition-opacity"
+                  />
+                ) : (
+                  <div className="text-sm space-x-1">
+                    <span
+                      className="cursor-pointer hover:underline hover:text-green-200 font-medium"
+                      onClick={() => navigate("/login")}
+                    >
+                      Login
+                    </span>
+                    <span className="font-medium">|</span>
+                    <span
+                      className="cursor-pointer hover:underline hover:text-green-200 font-medium"
+                      onClick={() => navigate("/register")}
+                    >
+                      Register
+                    </span>
+                  </div>
+                )}
 
                 {showUserMenu && isLoggedIn && (
                   <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md text-sm text-black z-10">
@@ -173,7 +193,9 @@ export default function Navbar() {
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-80 text-center shadow-lg">
-            <h2 className="text-lg font-semibold mb-4">Do you really want to logout?</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              Do you really want to logout?
+            </h2>
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
