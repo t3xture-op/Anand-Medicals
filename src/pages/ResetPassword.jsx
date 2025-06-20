@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function ResetPassword() {
   const location = useLocation();
@@ -29,15 +30,17 @@ export default function ResetPassword() {
 
     const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Error resetting password');
+        toast.error(data.message || 'Error resetting password');
         return;
       }else{
         navigate('/login');
+        toast.success("Password Updated")
       }
 
       
     } catch (err) {
       setError('Something went wrong. Try again.');
+      toast.error(err || "Something went worng")
     }
   };
 

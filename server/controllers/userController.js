@@ -2,15 +2,14 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
 import PasswordReset from "../models/PasswordReset.js";
-import { sendPasswordResetEmail } from "../utils/emailService.js";
+import { sendPasswordResetEmail ,sendAccountVerificationEmail} from "../utils/emailService.js";
 import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import Notification from "../models/Notification.js";
 import Order from "../models/Order.js";
 import { notificationEmitter } from "../routes/notification.js";
-import { v2 as cloudinary } from 'cloudinary';
-import { extractPublicId } from 'cloudinary-build-url';
-
+import { v2 as cloudinary } from "cloudinary";
+import { extractPublicId } from "cloudinary-build-url";
 
 //register a user
 export async function userRegistration(req, res) {
@@ -25,20 +24,7 @@ export async function userRegistration(req, res) {
     const user = new User({ email, password, name });
     await user.save();
 
-    const notification = new Notification({
-      title: "New User Registered",
-      message: `Welcome ${user.name} to the platform.`,
-      type: "user",
-      targetId: user._id, // <- required field
-    });
-    const savedNotification = await notification.save();
-
-    notificationEmitter.emit("newNotif", savedNotification);
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "24h",
-    });
-
-    res.status(201).json({ token });
+    res.status(201).json({ user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error creating user" });
@@ -95,18 +81,18 @@ export async function userLogin(req, res) {
           name: user.name,
           email: user.email,
           role: user.role,
-          image: user.image
+          image: user.image,
         },
       },
     });
   } catch (error) {
     res.status(500).json({ message: "Error logging in", error: error.message });
- 
   }
 }
 
-//logout
 
+
+//logout
 export async function userLogout(req, res) {
   try {
     const userid = req.user._id;
@@ -132,6 +118,7 @@ export async function userLogout(req, res) {
     });
   }
 }
+
 
 //forgot password
 export async function forgotPassword(req, res) {
@@ -162,6 +149,8 @@ export async function forgotPassword(req, res) {
     res.status(500).json({ message: "Error sending password reset OTP" });
   }
 }
+
+
 
 //verify otp
 export async function verifyOtp(req, res) {
@@ -197,6 +186,8 @@ export async function verifyOtp(req, res) {
   }
 }
 
+
+
 //reset password
 export async function resetPassword(req, res) {
   try {
@@ -216,6 +207,62 @@ export async function resetPassword(req, res) {
 }
 
 
+
+//verify account
+export const verifyAccount = async (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiry = Date.now() + 5 * 60 * 1000;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.otp = otp;
+    user.otpExpiry = expiry;
+    await user.save();
+
+    sendAccountVerificationEmail(email,otp)
+
+    res.json({ message: "OTP sent" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to send OTP" });
+  }
+};
+
+
+//verify otp for account verification
+export const verifyAccountOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user || user.otp !== otp || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+    const notification = new Notification({
+      title: "New User Registered",
+      message: `Welcome ${user.name} to the platform.`,
+      type: "user",
+      targetId: user._id, // <- required field
+    });
+    const savedNotification = await notification.save();
+
+    notificationEmitter.emit("newNotif", savedNotification);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+    res.json({ message:'user registration success' });
+  } catch (err) {
+    res.status(500).json({ message: "OTP verification failed" });
+  }
+};
+
 //get all users
 export async function getAllUsers(req, res) {
   try {
@@ -228,38 +275,59 @@ export async function getAllUsers(req, res) {
   }
 }
 
-
 //get user by id(admin)
+
 export async function getUserId(req, res) {
   try {
-    const id = req.params.id;
-    if (!id) return res.status(400).json({ message: "User ID is required" });
-
-    const user = await User.findById(id).select("-password");
+    const user = await User.findById(req.params.id).lean();
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const userOrders = await Order.find({ user: id });
+    const orders = await Order.find({ user: req.params.id }).lean();
 
-    res.status(200).json({ user, orders: userOrders });
+    const totalOrders = orders.length;
+    const activeOrders = orders.filter(
+      (o) => o.status !== "cancelled" && o.status !== "delivered"
+    ).length;
+    const cancelledOrders = orders.filter(
+      (o) => o.status === "cancelled"
+    ).length;
+    const deliveredOrders = orders.filter(
+      (o) => o.status === "delivered"
+    ).length;
+    const totalSpent = orders
+      .filter((o) => o.paymentStatus === "completed")
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    res.json({
+      user,
+      orders,
+      stats: {
+        totalOrders,
+        activeOrders,
+        cancelledOrders,
+        deliveredOrders,
+        totalSpent,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching user by ID:", error);
-    res.status(500).json({ message: "Failed to fetch user" });
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Error fetching user details" });
   }
 }
 
 //update profile
 export const updateProfile = async (req, res) => {
   try {
-    const { name, email, phone,  dob } = req.body;
+    const { name, email, phone, dob } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { name, email, phone, dob },
       { new: true }
-    ).select('-password');
+    ).select("-password");
 
     res.json(updatedUser);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to update profile' });
+    res.status(500).json({ message: "Failed to update profile" });
   }
 };
 
@@ -309,17 +377,16 @@ export const deleteProfilePhoto = async (req, res) => {
     // Remove image reference from DB
     const updated = await User.findByIdAndUpdate(
       req.user._id,
-      { image: '' },
+      { image: "" },
       { new: true }
     );
 
-    res.json({ message: 'Profile photo removed', image: updated.image });
+    res.json({ message: "Profile photo removed", image: updated.image });
   } catch (err) {
     console.error("Cloudinary Delete Error:", err);
-    res.status(500).json({ message: 'Failed to delete profile photo' });
+    res.status(500).json({ message: "Failed to delete profile photo" });
   }
 };
-
 
 //change password from profile
 
@@ -329,24 +396,23 @@ export const changePassword = async (req, res) => {
 
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const isMatch = await user.comparePassword(oldPassword);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Old password is incorrect' });
+      return res.status(400).json({ message: "Old password is incorrect" });
     }
 
     user.password = newPassword; // Will be hashed by pre-save hook
     await user.save();
 
-    res.status(200).json({ message: 'Password updated successfully' });
+    res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("Password change error:", err);
-    res.status(500).json({ message: 'Error changing password' });
+    res.status(500).json({ message: "Error changing password" });
   }
 };
-
 
 //get user for user
 export const getMyProfile = async (req, res) => {
@@ -356,10 +422,10 @@ export const getMyProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-     return res.json({
+    return res.json({
       id: user._id,
       name: user.name,
-      image:user.image,
+      image: user.image,
       email: user.email,
       phone: user.phone,
       dob: user.dob,

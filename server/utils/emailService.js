@@ -38,3 +38,31 @@ export const sendPasswordResetEmail = async (email, otp) => {
     await transporter.sendMail(mailOptions);
 
 };
+
+
+export const sendAccountVerificationEmail = async (email, otp) => {
+  const mailOptions = {
+    from: `"Anand Medicals" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Email Verification OTP',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2B8A3E;">Email verification Request</h2>
+        <p>You have requested to verify your account . Use the following OTP to proceed:</p>
+        <div style="background-color: #F1F3F5; padding: 20px; text-align: center; margin: 20px 0;">
+          <h1 style="color: #2B8A3E; margin: 0; letter-spacing: 5px;">${otp}</h1>
+        </div>
+        <p>This OTP will expire in 5 minutes.</p>
+        <p>If you didn't request this account verification, please ignore this email.</p>
+        <p style="color: #868E96; font-size: 12px; margin-top: 20px;">
+          This is an automated email, please do not reply.
+        </p>
+      </div>
+    `
+  };
+
+    
+    await transporter.sendMail(mailOptions);
+
+};
+

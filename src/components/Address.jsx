@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, Edit3, Save, Plus, LocateFixed, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Address() {
   const [addresses, setAddresses] = useState([]);
@@ -33,7 +34,7 @@ export default function Address() {
 
   const getLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported");
+      toast.error("Geolocation not supported");
       return;
     }
 
@@ -46,10 +47,10 @@ export default function Address() {
           latitude,
           longitude,
         }));
-        alert("Location added successfully.");
+        toast.success("Location added successfully.");
       },
       () => {
-        alert("Unable to access location. Please allow location permission.");
+        toast.warning("Unable to access location. Please allow location permission.");
         setFormData((prev) => ({
           ...prev,
           latitude: null,
@@ -94,8 +95,9 @@ export default function Address() {
         longitude: null,
       });
       setAddresses(data.addresses);
+      toast.success("Address Added")
     } else {
-      alert(data.message || "Save failed.");
+      toast.error(data.message || "Save failed.");
     }
   };
 
@@ -138,10 +140,10 @@ export default function Address() {
           setAddresses(newData.addresses);
         }
       } else {
-        alert("Failed to set default address");
+        toast.error("Failed to set default address");
       }
     } catch (err) {
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
@@ -157,12 +159,12 @@ export default function Address() {
       const data = await res.json();
       if (res.ok && Array.isArray(data.addresses)) {
         setAddresses(data.addresses);
-        alert("Address deleted successfully.");
+        toast.success("Address deleted successfully.");
       } else {
-        alert(data.message || "Failed to delete address");
+        toast.error(data.message || "Failed to delete address");
       }
     } catch (err) {
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 

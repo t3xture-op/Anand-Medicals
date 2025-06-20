@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import { notificationEmitter } from "../routes/notification.js";
 import { applyActiveOfferToProduct } from "../utils/applyActiveOfferToProduct.js"
 import Offer from "../models/offers.js";
+import mongoose from "mongoose";
 
 
 // Get all orders of a user
@@ -50,7 +51,8 @@ export async function getAllOrdersOfUser(req, res) {
         };
       })
     );
-
+    
+  
     res.json(updatedOrders);
   } catch (error) {
     console.error("Error fetching user orders:", error);
@@ -66,7 +68,7 @@ export async function getOrderById(req, res) {
     // Fetch order with populated references
     const order = await Order.findById(req.params.id)
       .populate("items.product")
-      .populate("user", "name email")
+      .populate("user", "name email image")
       .populate("shippingAddress");
 
     if (!order) {
@@ -152,7 +154,14 @@ export const getAllOrders = async (req, res) => {
 // Create new order
 export async function createOrder(req, res) {
   try {
-    const { items, shippingAddress, totalAmount, paymentMethod } = req.body;
+    const {
+      items,
+      shippingAddress,
+      totalAmount,
+      paymentMethod,
+      paymentInfo,      
+      paymentStatus,     
+    } = req.body;
 
     // Get user object to use for name in notification
     const user = await User.findById(req.user._id);
@@ -188,7 +197,7 @@ export async function createOrder(req, res) {
           title: "Low Stock Alert",
           message: `${product.name} is running low on stock.`,
           type: "stock",
-          targetId: product._id, // <- required field
+          targetId: product._id,
         });
         const savedNotification = await notification.save();
 
@@ -204,6 +213,8 @@ export async function createOrder(req, res) {
       totalAmount,
       paymentMethod,
       status: "pending",
+      paymentStatus: paymentMethod === "online" ? (paymentStatus || "completed") : "pending", // ✅
+      paymentInfo: paymentMethod === "online" ? paymentInfo : undefined,                      // ✅
     });
 
     await order.save();
@@ -216,8 +227,6 @@ export async function createOrder(req, res) {
     });
 
     const savedNotification = await notification.save();
-
-    // 3. Emit it to SSE stream
     notificationEmitter.emit("newNotif", savedNotification);
 
     res.status(201).json(order);
@@ -228,6 +237,7 @@ export async function createOrder(req, res) {
       .json({ message: "Error creating order", error: error.message });
   }
 }
+
 
 // Update order status (admin only)
 export async function updateOrder(req, res) {
@@ -292,5 +302,64 @@ export async function cancelOrder(req, res) {
     res.json(order);
   } catch (error) {
     res.status(400).json({ message: "Error cancelling order" });
+  }
+}
+
+
+//get order status of all user 
+
+export async function getAllUserOrderStats(req, res) {
+  try {
+    const stats = await Order.aggregate([
+      {
+        $match: {
+          status: { $ne: "cancelled" }, // Only count valid order statuses
+        },
+      },
+      {
+        $group: {
+          _id: "$user",
+          totalOrders: { $sum: 1 }, // Count of non-cancelled orders
+          totalSpent: {
+            $sum: {
+              $cond: [
+                { $eq: ["$paymentStatus", "completed"] }, // Only completed payments
+                "$totalAmount",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: "$userDetails",
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: "$userDetails._id",
+          fullName: "$userDetails.fullName",
+          email: "$userDetails.email",
+          totalSpent: 1,
+          totalOrders: 1,
+        },
+      },
+      {
+        $sort: { totalSpent: -1 },
+      },
+    ]);
+
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching all user order stats:", error);
+    res.status(500).json({ message: "Error fetching user stats" });
   }
 }

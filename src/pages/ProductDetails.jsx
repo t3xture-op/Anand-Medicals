@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 import { ShoppingCart } from 'lucide-react';
 import { AuthContext } from '../authContext';
+import { toast } from 'sonner';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -27,12 +28,12 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (!isLoggedIn) {
-      alert('Please login to add items to cart.');
+      toast.success('Please login to add items to cart.');
       return;
     }
 
     if (product.stock <= 0) {
-      alert('This product is out of stock.');
+      toast.warning('This product is out of stock.');
       return;
     }
 
@@ -61,14 +62,14 @@ export default function ProductDetail() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || 'Failed to add to cart');
+        toast.error(data.message || 'Failed to add to cart');
         return;
       }
 
-      alert('Item added to your cart');
+      toast.success('Item added to your cart');
     } catch (error) {
       console.error('Error adding to cart:', error.message);
-      alert('Error adding to cart');
+      toast.error('Error adding to cart');
     }
   };
 

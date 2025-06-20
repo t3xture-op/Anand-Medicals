@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   ShoppingBag,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function PrescriptionDetail() {
   const { id } = useParams();
@@ -49,43 +50,38 @@ export default function PrescriptionDetail() {
   }, [id, navigate]);
 
   const handleReviewSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  try {
-    console.log("Submitting:", { status, notes });
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/prescription/review/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ status, notes }),
+        }
+      );
 
-    const res = await fetch(
-      `http://localhost:5000/api/prescription/review/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          
-        },
-        credentials: "include",
-        body: JSON.stringify({ status, notes }),
+      if (!res.ok) {
+        const errorData = await res.text(); // show full error response
+        throw new Error(`Review failed: ${errorData}`);
       }
-    );
 
-
-    if (!res.ok) {
-      const errorData = await res.text(); // show full error response
-      throw new Error(`Review failed: ${errorData}`);
+      const data = await res.json();
+      setPrescription(data.prescription);
+      toast.success(`Prescription has been ${status}`);
+      navigate("/prescriptions");
+    } catch (err) {
+      console.error("Review error:", err);
+      toast.error(err.message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const data = await res.json();
-    setPrescription(data.prescription);
-    alert(`Prescription has been ${status}`);
-    navigate('/prescriptions')
-  } catch (err) {
-    console.error("Review error:", err);
-    alert(err.message);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  };
 
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleString(undefined, {
@@ -124,22 +120,26 @@ export default function PrescriptionDetail() {
       <div className="flex items-center">
         <button
           onClick={() => navigate("/prescriptions")}
-          className="mr-4 text-gray-500 hover:text-gray-700"
+          className="mr-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-xl font-semibold">Prescription Review</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Prescription Review
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             ID: {prescription._id} • Submitted by {prescription.user?.name}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 bg-white p-6 rounded border">
+        <div className="lg:col-span-2 bg-white dark:bg-[#161b22] p-6 rounded border dark:border-[#30363d]">
           <div className="flex justify-between mb-4">
-            <h2 className="text-lg font-medium">Prescription Details</h2>
+            <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+              Prescription Details
+            </h2>
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(
                 prescription.status
@@ -156,23 +156,25 @@ export default function PrescriptionDetail() {
             className="w-full object-contain border rounded mb-4"
           />
 
-          <div className="grid gap-2 mb-4">
-            <div className="text-sm">
+          <div className="grid gap-2 mb-4 text-sm text-gray-800 dark:text-gray-300">
+            <div>
               <strong>Doctor Name:</strong> {prescription.doctorName || "—"}
             </div>
-            <div className="text-sm">
+            <div>
               <strong>Specialization:</strong>{" "}
               {prescription.doctorSpecialization || "—"}
             </div>
-            <div className="text-sm">
+            <div>
               <strong>Notes:</strong> {prescription.notes || "—"}
             </div>
           </div>
 
           {prescription.medicines?.length > 0 && (
             <div className="mt-4">
-              <h3 className="text-sm font-medium mb-2">Prescribed Medicines</h3>
-              <ul className="divide-y rounded border text-sm">
+              <h3 className="text-sm font-medium mb-2 text-gray-800 dark:text-gray-200">
+                Prescribed Medicines
+              </h3>
+              <ul className="divide-y divide-gray-200 dark:divide-[#30363d] rounded border dark:border-[#30363d] text-sm text-gray-800 dark:text-gray-300">
                 {prescription.medicines.map((med, idx) => (
                   <li key={idx} className="p-2">
                     <div>
@@ -192,11 +194,13 @@ export default function PrescriptionDetail() {
 
           <form onSubmit={handleReviewSubmit} className="mt-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium">Review Status</label>
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300">
+                Review Status
+              </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 w-full rounded border px-3 py-2"
+                className="mt-1 w-full rounded border dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-gray-800 dark:text-gray-100 px-3 py-2"
                 required
               >
                 <option value="pending">Pending</option>
@@ -205,12 +209,14 @@ export default function PrescriptionDetail() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium">Notes</label>
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300">
+                Notes
+              </label>
               <textarea
                 rows="3"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="mt-1 w-full rounded border px-3 py-2"
+                className="mt-1 w-full rounded border dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-gray-800 dark:text-gray-100 px-3 py-2"
               ></textarea>
             </div>
             <div className="flex justify-end">
@@ -234,7 +240,7 @@ export default function PrescriptionDetail() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white p-4 rounded border">
+          <div className="bg-white dark:bg-[#161b22] p-4 rounded border dark:border-[#30363d] text-gray-800 dark:text-gray-300">
             <h2 className="text-lg font-medium mb-2">Status</h2>
             <div className="flex items-center">
               {prescription.status === "approved" ? (
@@ -254,9 +260,11 @@ export default function PrescriptionDetail() {
             )}
           </div>
 
-          <div className="bg-white p-4 rounded border">
+          <div className="bg-white dark:bg-[#161b22] p-4 rounded border dark:border-[#30363d]">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium">Customer</h2>
+              <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+                Customer
+              </h2>
               <Link
                 to={`/users/${prescription.user?._id}`}
                 className="text-blue-600 text-sm"
@@ -265,12 +273,18 @@ export default function PrescriptionDetail() {
               </Link>
             </div>
             <div className="flex items-center mt-3">
-              <div className="rounded-full p-2 bg-gray-100 mr-3">
-                <User size={20} />
+              <div className="rounded-full bg-gray-100 dark:bg-[#0d1117] mr-3 object-cover ">
+                <img
+                  src={prescription.user?.image || "/user.jpg"}
+                  className="w-10 h-10 rounded-full object-cover "
+                  alt="Photo"
+                />
               </div>
               <div>
-                <h3>{prescription.user?.name}</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="text-gray-800 dark:text-white">
+                  {prescription.user?.name}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {prescription.user?.email}
                 </p>
               </div>
@@ -278,9 +292,11 @@ export default function PrescriptionDetail() {
           </div>
 
           {order && (
-            <div className="bg-white p-4 rounded border">
+            <div className="bg-white dark:bg-[#161b22] p-4 rounded border dark:border-[#30363d]">
               <div className="flex justify-between">
-                <h2 className="text-lg font-medium">Order</h2>
+                <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+                  Order
+                </h2>
                 <Link
                   to={`/orders/${order._id}`}
                   className="text-blue-600 text-sm"
@@ -291,9 +307,11 @@ export default function PrescriptionDetail() {
               <div className="mt-3">
                 <div className="flex items-center">
                   <ShoppingBag size={20} className="mr-2 text-blue-600" />
-                  <span>{order.orderNumber}</span>
+                  <span className="text-gray-800 dark:text-white">
+                    {order.orderNumber}
+                  </span>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {formatDate(order.createdAt)}
                 </p>
               </div>

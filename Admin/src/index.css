@@ -120,4 +120,7 @@ body {
   .badge-secondary {
     @apply bg-teal-100 text-teal-800;
   }
+  .dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
 }

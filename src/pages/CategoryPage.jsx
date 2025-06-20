@@ -1,7 +1,8 @@
 import { useParams, Link, useLocation } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { useCartStore } from "../store/cartStore";
-import { AuthContext } from "../authContext"; // ✅ Import auth context
+import { AuthContext } from "../authContext";
+import { toast } from "sonner";
 
 export default function CategoryPage() {
   const { id } = useParams();
@@ -30,12 +31,12 @@ export default function CategoryPage() {
 
   const handleAddToCart = async (product) => {
     if (!isLoggedIn) {
-      alert('Please login to add items to cart.');
+      toast.warning('Please login to add items to cart.');
       return;
     }
 
     if (product.stock <= 0) {
-      alert('This product is out of stock.');
+      toast.warning('This product is out of stock.');
       return;
     }
 
@@ -61,13 +62,13 @@ export default function CategoryPage() {
 
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Failed to add to cart');
+        toast.error(data.message || 'Failed to add to cart');
         return;
       }
 
-      alert('Item added to your cart');
+      toast.success('Item added to your cart');
     } catch (error) {
-      alert("Error adding to cart: " + error.message);
+      toast.error("Error adding to cart: " + error.message);
     }
   };
 

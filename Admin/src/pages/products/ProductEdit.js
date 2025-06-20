@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Save, ArrowLeft, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const ProductEdit = () => {
   const { id } = useParams();
@@ -121,33 +122,39 @@ const ProductEdit = () => {
       });
 
       if (!res.ok) throw new Error("Failed to update product");
-      alert("Product updated successfully");
+      toast.success("Product updated successfully");
       navigate("/products");
     } catch (error) {
       console.error("Error updating product:", error);
-      alert("Error updating product");
+      toast.error("Error updating product");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        const res = await fetch(
-          `http://localhost:5000/api/products/delete/${id}`,
-          {
-            method: "DELETE",
+    toast("DELETE PRODUCT", {
+      description: "Are you sure you want to delete this product?",
+      action: {
+        label: "DELETE",
+        onClick: async () => {
+          try {
+            const res = await fetch(
+              `http://localhost:5000/api/products/delete/${id}`,
+              {
+                method: "DELETE",
+              }
+            );
+            if (!res.ok) throw new Error("Failed to delete product");
+            toast.success("Product deleted");
+            navigate("/products");
+          } catch (error) {
+            console.error("Error deleting product:", error);
+            toast.error("Error deleting product");
           }
-        );
-        if (!res.ok) throw new Error("Failed to delete product");
-        alert("Product deleted");
-        navigate("/products");
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        alert("Error deleting product");
-      }
-    }
+        },
+      },
+    });
   };
 
   if (isLoading) {
@@ -160,16 +167,18 @@ const ProductEdit = () => {
   ).toFixed(2);
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-6 fade-in text-gray-900 dark:text-gray-100">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button
             onClick={() => navigate("/products")}
-            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">Edit Product</h1>
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+            Edit Product
+          </h1>
         </div>
         <button
           onClick={handleDelete}
@@ -184,27 +193,29 @@ const ProductEdit = () => {
         className="space-y-6"
         encType="multipart/form-data"
       >
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="form-label">Product Name</label>
+              <label className="form-label dark:text-gray-300">
+                Product Name
+              </label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
             </div>
             <div>
-              <label className="form-label">Category</label>
+              <label className="form-label dark:text-gray-300">Category</label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               >
                 <option value="">Select category</option>
                 {categories.map((cat) => (
@@ -215,12 +226,14 @@ const ProductEdit = () => {
               </select>
             </div>
             <div>
-              <label className="form-label">Subcategory</label>
+              <label className="form-label dark:text-gray-300">
+                Subcategory
+              </label>
               <select
                 name="subcategory"
                 value={formData.subcategory}
                 onChange={handleChange}
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               >
                 <option value="">Select subcategory</option>
                 {subcategories.map((sub) => (
@@ -231,7 +244,7 @@ const ProductEdit = () => {
               </select>
             </div>
             <div>
-              <label className="form-label">Price (₹)</label>
+              <label className="form-label dark:text-gray-300">Price (₹)</label>
               <input
                 type="number"
                 name="price"
@@ -239,11 +252,13 @@ const ProductEdit = () => {
                 onChange={handleChange}
                 required
                 min="0"
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
             </div>
             <div>
-              <label className="form-label">Discount (%)</label>
+              <label className="form-label dark:text-gray-300">
+                Discount (%)
+              </label>
               <input
                 type="number"
                 name="discount"
@@ -251,11 +266,13 @@ const ProductEdit = () => {
                 onChange={handleChange}
                 min="0"
                 max="100"
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
             </div>
             <div>
-              <label className="form-label">Stock Quantity</label>
+              <label className="form-label dark:text-gray-300">
+                Stock Quantity
+              </label>
               <input
                 type="number"
                 name="stock"
@@ -263,27 +280,31 @@ const ProductEdit = () => {
                 onChange={handleChange}
                 required
                 min="0"
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
             </div>
             <div>
-              <label className="form-label">Manufacturer</label>
+              <label className="form-label dark:text-gray-300">
+                Manufacturer
+              </label>
               <input
                 type="text"
                 name="manufacturer"
                 value={formData.manufacturer}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
             </div>
             <div>
-              <label className="form-label">Upload New Image</label>
+              <label className="form-label dark:text-gray-300">
+                Upload New Image
+              </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                 ref={fileInputRef}
               />
               {formData.image && (
@@ -291,12 +312,12 @@ const ProductEdit = () => {
                   <img
                     src={formData.image}
                     alt="Product Preview"
-                    className="h-32 rounded border object-contain"
+                    className="h-32 rounded border object-contain dark:border-gray-700"
                   />
                   <button
                     type="button"
                     onClick={clearImage}
-                    className="text-sm text-red-500 mt-2 underline"
+                    className="text-sm text-red-500 mt-2 underline hover:text-red-700"
                   >
                     Clear Image
                   </button>
@@ -304,13 +325,15 @@ const ProductEdit = () => {
               )}
             </div>
             <div className="md:col-span-2">
-              <label className="form-label">Description</label>
+              <label className="form-label dark:text-gray-300">
+                Description
+              </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                className="form-input"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               ></textarea>
             </div>
             <div className="md:col-span-2">
@@ -320,9 +343,9 @@ const ProductEdit = () => {
                   name="prescription_status"
                   checked={formData.prescription_status}
                   onChange={handleChange}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
                 />
-                <label className="ml-2 block text-sm text-gray-700">
+                <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                   This product requires a prescription
                 </label>
               </div>
@@ -331,61 +354,65 @@ const ProductEdit = () => {
         </div>
 
         {/* Product Preview */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-medium text-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+          <h2 className="mb-4 text-lg font-medium text-gray-800 dark:text-gray-100">
             Product Preview
           </h2>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="h-48 w-48 overflow-hidden rounded border">
+            <div className="h-48 w-48 overflow-hidden rounded border dark:border-gray-700">
               <img
                 src={formData.image}
                 alt={formData.name}
                 onError={(e) =>
                   (e.target.src =
-                    "https://dummyimage.com/150x150/cccccc/ffffff&text=No+Image")
+                    "https://dummyimage.com/150x150/444/ccc&text=No+Image")
                 }
                 className="h-full w-full object-cover"
               />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 {formData.name}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Category:{" "}
                 {categories.find((c) => c._id === formData.category)?.name ||
                   "N/A"}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Subcategory:{" "}
                 {subcategories.find((s) => s._id === formData.subcategory)
-                  ?.emoji +
-                  " " +
-                  subcategories.find((s) => s._id === formData.subcategory)
-                    ?.name || "N/A"}
+                  ? `${
+                      subcategories.find((s) => s._id === formData.subcategory)
+                        ?.emoji || ""
+                    } ${
+                      subcategories.find((s) => s._id === formData.subcategory)
+                        ?.name || ""
+                    }`
+                  : "N/A"}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Price: ₹{parseFloat(formData.price || 0).toFixed(2)}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Discount: {formData.discount || 0}%
               </p>
-              <p className="text-sm font-semibold text-gray-700">
+              <p className="text-sm font-semibold text-gray-700 dark:text-green-400">
                 Discounted Price: ₹{discountedPrice}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Stock: {formData.stock} units
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Manufacturer: {formData.manufacturer}
               </p>
               {formData.prescription_status && (
-                <span className="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                <span className="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
                   Prescription Required
                 </span>
               )}
               {formData.description && (
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-gray-600 mt-2 dark:text-gray-300">
                   {formData.description}
                 </p>
               )}
@@ -396,7 +423,7 @@ const ProductEdit = () => {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            className="btn btn-outline"
+            className="btn btn-outline dark:border-gray-600 dark:text-gray-800 "
             onClick={() => navigate("/products")}
             disabled={isSubmitting}
           >

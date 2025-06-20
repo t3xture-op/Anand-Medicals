@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 const ProductAdd = () => {
   const navigate = useNavigate();
@@ -97,14 +98,14 @@ const ProductAdd = () => {
       setIsSubmitting(false);
 
       if (!response.ok) {
-        alert("Failed to add product: " + JSON.stringify(data));
+        toast.error("Failed to add product: " + JSON.stringify(data));
         return;
       }
 
-      alert("Product added successfully");
+      toast.success("Product added successfully");
       navigate("/products");
     } catch (err) {
-      alert("Something went wrong!");
+      toast.error("Something went wrong!");
       console.error(err);
       setIsSubmitting(false);
     }
@@ -116,30 +117,30 @@ const ProductAdd = () => {
       : null;
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-6 fade-in text-gray-900 dark:text-gray-100">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button
             onClick={() => navigate("/products")}
-            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
             Add New Product
           </h1>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-medium text-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+          <h2 className="mb-4 text-lg font-medium text-gray-800 dark:text-gray-100">
             Product Information
           </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="name" className="form-label">
+              <label htmlFor="name" className="form-label dark:text-gray-300">
                 Product Name
               </label>
               <input
@@ -149,13 +150,16 @@ const ProductAdd = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-gray-700 dark:text-gray-100"
                 placeholder="Enter product name"
               />
             </div>
 
             <div>
-              <label htmlFor="category" className="form-label">
+              <label
+                htmlFor="category"
+                className="form-label dark:text-gray-300"
+              >
                 Category
               </label>
               <select
@@ -164,7 +168,7 @@ const ProductAdd = () => {
                 value={formData.category}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-gray-700 dark:text-gray-100"
               >
                 <option value="">Select a category</option>
                 {categories.map((category) => (
@@ -176,7 +180,7 @@ const ProductAdd = () => {
             </div>
 
             <div>
-              <label htmlFor="subcategory" className="form-label">
+              <label htmlFor="subcategory" className="form-label dark:text-gray-300">
                 Sub Category
               </label>
               <select
@@ -185,7 +189,7 @@ const ProductAdd = () => {
                 value={formData.subcategory}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-gray-700 dark:text-gray-100"
               >
                 <option value="">Select a subcategory</option>
                 {subcategories.map((sub) => (
@@ -197,7 +201,7 @@ const ProductAdd = () => {
             </div>
 
             <div>
-              <label htmlFor="price" className="form-label">
+              <label htmlFor="price" className="form-label dark:text-gray-300">
                 Price (₹)
               </label>
               <input
@@ -209,13 +213,13 @@ const ProductAdd = () => {
                 required
                 min="0"
                 step="0.01"
-                className="form-input"
+                className="form-input dark:bg-[#0d1117]"
                 placeholder="0.00"
               />
             </div>
 
-            <div>
-              <label htmlFor="discount" className="form-label">
+                <div>
+              <label htmlFor="discount" className="form-label dark:text-gray-300">
                 Discount (%)
               </label>
               <input
@@ -227,13 +231,14 @@ const ProductAdd = () => {
                 required
                 min="0"
                 step="0.01"
-                className="form-input"
+                className="form-input dark:bg-[#0d1117]"
                 placeholder="0%"
               />
             </div>
 
+            
             <div>
-              <label htmlFor="stock" className="form-label">
+              <label htmlFor="stock" className="form-label dark:text-gray-300">
                 Stock Quantity
               </label>
               <input
@@ -244,13 +249,13 @@ const ProductAdd = () => {
                 onChange={handleChange}
                 required
                 min="0"
-                className="form-input"
+                className="form-input dark:bg-[#0d1117]"
                 placeholder="0"
               />
             </div>
 
             <div>
-              <label htmlFor="manufacturer" className="form-label">
+              <label htmlFor="manufacturer" className="form-label dark:text-gray-300">
                 Manufacturer
               </label>
               <input
@@ -260,26 +265,26 @@ const ProductAdd = () => {
                 value={formData.manufacturer}
                 onChange={handleChange}
                 required
-                className="form-input"
-                placeholder="Enter manufacturer"
+                className="form-input dark:bg-[#0d1117]"
+                placeholder="Enter manufacturer "
               />
             </div>
 
             <div>
-              <label className="form-label">Upload Image</label>
+              <label className="form-label dark:text-gray-300">Upload Image</label>
               <div className="flex items-center gap-2">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
                   ref={fileInputRef}
-                  className="form-input"
+                  className="form-input dark:bg-[#0d1117]"
                 />
                 {previewUrl && (
                   <button
                     type="button"
                     onClick={handleClearImage}
-                    className="text-sm text-red-500 underline hover:text-red-700"
+                    className="text-sm text-red-500 underline hover:text-red-700 dark:text-gray-300"
                   >
                     Clear
                   </button>
@@ -288,7 +293,10 @@ const ProductAdd = () => {
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="description" className="form-label">
+              <label
+                htmlFor="description"
+                className="form-label dark:text-gray-300"
+              >
                 Description
               </label>
               <textarea
@@ -297,10 +305,11 @@ const ProductAdd = () => {
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-gray-700 dark:text-gray-100"
                 placeholder="Enter product description"
               ></textarea>
             </div>
+
 
             <div className="md:col-span-2">
               <div className="flex items-center">
@@ -310,11 +319,11 @@ const ProductAdd = () => {
                   name="PrescriptionStatus"
                   checked={formData.PrescriptionStatus}
                   onChange={handleChange}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700"
                 />
                 <label
                   htmlFor="PrescriptionStatus"
-                  className="ml-2 block text-sm text-gray-700"
+                  className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
                 >
                   This product requires a prescription
                 </label>
@@ -324,14 +333,15 @@ const ProductAdd = () => {
         </div>
 
         {/* Product Preview */}
+
         {(formData.name || previewUrl) && (
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-medium text-gray-800">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <h2 className="mb-4 text-lg font-medium text-gray-800 dark:text-gray-100">
               Product Preview
             </h2>
 
             <div className="flex flex-col items-center md:flex-row md:items-start">
-              <div className="mb-4 h-48 w-48 overflow-hidden rounded-lg border border-gray-200 md:mb-0 md:mr-6">
+              <div className="mb-4 h-48 w-48 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 md:mb-0 md:mr-6">
                 {previewUrl ? (
                   <img
                     src={previewUrl}
@@ -339,14 +349,14 @@ const ProductAdd = () => {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600">
                     No image
                   </div>
                 )}
               </div>
 
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                   {formData.name || "Product Name"}
                 </h3>
 
@@ -369,18 +379,19 @@ const ProductAdd = () => {
                         Sub Category:
                       </span>
                       <span className="ml-2 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                        {subcategories.find((cat) => cat._id === formData.subcategory)
-                          ?.name || "Unknown"}
+                        {subcategories.find(
+                          (cat) => cat._id === formData.subcategory
+                        )?.name || "Unknown"}
                       </span>
                     </div>
                   )}
 
                   {formData.price && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">
+                      <span className="text-sm font-medium text-gray-500 ">
                         Price:
                       </span>
-                      <span className="ml-2 text-sm font-medium text-gray-900">
+                      <span className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                         ₹{parseFloat(formData.price).toFixed(2)}
                       </span>
                     </div>
@@ -388,10 +399,10 @@ const ProductAdd = () => {
 
                   {formData.discount && (
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500">
+                      <span className="text-sm font-medium text-gray-500 ">
                         Discount:
                       </span>
-                      <span className="ml-2 text-sm font-medium text-gray-900">
+                      <span className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                         {formData.discount}%
                       </span>
                     </div>
@@ -402,7 +413,7 @@ const ProductAdd = () => {
                       <span className="text-sm font-medium text-gray-500">
                         Discounted Price:
                       </span>
-                      <span className="ml-2 text-sm font-semibold text-green-600">
+                      <span className="ml-2 text-sm font-semibold text-green-600 dark:text-gray-300">
                         ₹{discountedPrice}
                       </span>
                     </div>
@@ -413,7 +424,7 @@ const ProductAdd = () => {
                       <span className="text-sm font-medium text-gray-500">
                         Stock:
                       </span>
-                      <span className="ml-2 text-sm text-gray-900">
+                      <span className="ml-2 text-sm text-gray-900 dark:text-gray-300">
                         {formData.stock} units
                       </span>
                     </div>
@@ -424,7 +435,7 @@ const ProductAdd = () => {
                       <span className="text-sm font-medium text-gray-500">
                         Manufacturer:
                       </span>
-                      <span className="ml-2 text-sm text-gray-900">
+                      <span className="ml-2 text-sm text-gray-900 dark:text-gray-300">
                         {formData.manufacturer}
                       </span>
                     </div>
@@ -441,7 +452,7 @@ const ProductAdd = () => {
 
                 {formData.description && (
                   <div className="mt-4">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       {formData.description}
                     </p>
                   </div>
@@ -455,7 +466,7 @@ const ProductAdd = () => {
           <button
             type="button"
             onClick={() => navigate("/products")}
-            className="btn btn-outline"
+            className="btn btn-outline dark:border-gray-600 dark:text-gray-800 "
             disabled={isSubmitting}
           >
             Cancel

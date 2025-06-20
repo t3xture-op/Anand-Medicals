@@ -1,30 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Save, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 export default function OfferAdd() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({
-    offerName: '',
-    description: '',
-    discount: '',
-    startDate: '',
-    endDate: '',
-    status: 'active',
+    offerName: "",
+    description: "",
+    discount: "",
+    startDate: "",
+    endDate: "",
+    status: "active",
     products: [],
   });
 
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch('http://localhost:5000/api/products');
+        const res = await fetch("http://localhost:5000/api/products");
         const data = await res.json();
         setProducts(data);
       } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error("Error fetching products:", err);
       }
     }
 
@@ -56,26 +57,26 @@ export default function OfferAdd() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/offer/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/api/offer/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-        credentials: 'include',
+        credentials: "include",
       });
 
       const data = await response.json();
       setIsSubmitting(false);
 
       if (!response.ok) {
-        alert('Failed to add offer: ' + JSON.stringify(data));
+        toast.error("Failed to add offer: " + JSON.stringify(data));
         return;
       }
 
-      alert('Offer added successfully');
-      navigate('/offers');
+      toast.success("Offer added successfully");
+      navigate("/offers");
     } catch (err) {
       console.log(err);
-      alert('Something went wrong'.err);
+      toast.error("Something went wrong".err);
       setIsSubmitting(false);
     }
   };
@@ -85,26 +86,37 @@ export default function OfferAdd() {
   );
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-6 fade-in text-black dark:text-white">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button
-            onClick={() => navigate('/offers')}
-            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            onClick={() => navigate("/offers")}
+            className="mr-4 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-[#30363d] dark:hover:text-white"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">Add New Offer</h1>
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Add New Offer
+          </h1>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-medium text-gray-800">Offer Information</h2>
+        {/* Offer Info */}
+        <div className="rounded-lg border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-medium text-gray-800 dark:text-white">
+            Offer Information
+          </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label htmlFor="offerName" className="form-label">Offer Name</label>
+              <label
+                htmlFor="offerName"
+                className="form-label dark:text-gray-300"
+              >
+                Offer Name
+              </label>
               <input
                 type="text"
                 id="offerName"
@@ -112,13 +124,18 @@ export default function OfferAdd() {
                 value={formData.offerName}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-[#30363d] dark:text-white"
                 placeholder="Enter offer name"
               />
             </div>
 
             <div>
-              <label htmlFor="discount" className="form-label">Discount (%)</label>
+              <label
+                htmlFor="discount"
+                className="form-label dark:text-gray-300"
+              >
+                Discount (%)
+              </label>
               <input
                 type="number"
                 id="discount"
@@ -128,13 +145,18 @@ export default function OfferAdd() {
                 required
                 min="0"
                 max="100"
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-[#30363d] dark:text-white"
                 placeholder="0%"
               />
             </div>
 
             <div>
-              <label htmlFor="startDate" className="form-label">Start Date</label>
+              <label
+                htmlFor="startDate"
+                className="form-label dark:text-gray-300"
+              >
+                Start Date
+              </label>
               <input
                 type="date"
                 id="startDate"
@@ -142,12 +164,17 @@ export default function OfferAdd() {
                 value={formData.startDate}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-[#30363d] dark:text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="endDate" className="form-label">End Date</label>
+              <label
+                htmlFor="endDate"
+                className="form-label dark:text-gray-300"
+              >
+                End Date
+              </label>
               <input
                 type="date"
                 id="endDate"
@@ -155,18 +182,20 @@ export default function OfferAdd() {
                 value={formData.endDate}
                 onChange={handleChange}
                 required
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-[#30363d] dark:text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="status" className="form-label">Status</label>
+              <label htmlFor="status" className="form-label dark:text-gray-300">
+                Status
+              </label>
               <select
                 id="status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-[#30363d] dark:text-white"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -174,14 +203,19 @@ export default function OfferAdd() {
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="description" className="form-label">Description</label>
+              <label
+                htmlFor="description"
+                className="form-label dark:text-gray-300"
+              >
+                Description
+              </label>
               <textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                className="form-input"
+                className="form-input dark:bg-[#0d1117] dark:border-[#30363d] dark:text-white"
                 placeholder="Enter offer description"
               ></textarea>
             </div>
@@ -189,13 +223,15 @@ export default function OfferAdd() {
         </div>
 
         {/* Product Selection */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-medium text-gray-800">Select Products</h2>
+        <div className="rounded-lg border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-medium text-gray-800 dark:text-white">
+            Select Products
+          </h2>
 
           <input
             type="text"
             placeholder="Search products..."
-            className="form-input mb-4 w-full"
+            className="form-input mb-4 w-full dark:bg-[#0d1117] dark:border-[#30363d] dark:text-white"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -208,28 +244,48 @@ export default function OfferAdd() {
                   checked={formData.products.includes(product._id)}
                   onChange={() => handleProductToggle(product._id)}
                 />
-                <label className="text-sm text-gray-700">{product.name}</label>
+                <label className="text-sm text-gray-700 dark:text-gray-300">
+                  {product.name}
+                </label>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Preview Section */}
-        {(formData.offerName || formData.discount || formData.products.length > 0) && (
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-medium text-gray-800">Offer Preview</h2>
+        {/* Preview */}
+        {(formData.offerName ||
+          formData.discount ||
+          formData.products.length > 0) && (
+          <div className="rounded-lg border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-medium text-gray-800 dark:text-white">
+              Offer Preview
+            </h2>
 
-            <div className="space-y-3">
-              <div><strong>Offer Name:</strong> {formData.offerName || 'N/A'}</div>
-              <div><strong>Description:</strong> {formData.description || 'N/A'}</div>
-              <div><strong>Discount:</strong> {formData.discount || 0}%</div>
-              <div><strong>Start Date:</strong> {formData.startDate || 'N/A'}</div>
-              <div><strong>End Date:</strong> {formData.endDate || 'N/A'}</div>
-              <div><strong>Status:</strong> {formData.status}</div>
+            <div className="space-y-3 text-gray-800 dark:text-gray-300">
+              <div>
+                <strong>Offer Name:</strong> {formData.offerName || "N/A"}
+              </div>
+              <div>
+                <strong>Description:</strong> {formData.description || "N/A"}
+              </div>
+              <div>
+                <strong>Discount:</strong> {formData.discount || 0}%
+              </div>
+              <div>
+                <strong>Start Date:</strong> {formData.startDate || "N/A"}
+              </div>
+              <div>
+                <strong>End Date:</strong> {formData.endDate || "N/A"}
+              </div>
+              <div>
+                <strong>Status:</strong> {formData.status}
+              </div>
               <div>
                 <strong>Selected Products:</strong>
                 <ul className="ml-5 list-disc">
-                  {formData.products.length === 0 && <li>No products selected</li>}
+                  {formData.products.length === 0 && (
+                    <li>No products selected</li>
+                  )}
                   {formData.products.map((id) => {
                     const prod = products.find((p) => p._id === id);
                     return prod ? <li key={id}>{prod.name}</li> : null;
@@ -240,10 +296,11 @@ export default function OfferAdd() {
           </div>
         )}
 
+        {/* Buttons */}
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => navigate('/offers')}
+            onClick={() => navigate("/offers")}
             className="btn btn-outline"
             disabled={isSubmitting}
           >

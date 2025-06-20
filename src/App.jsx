@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom'; // removed BrowserRouter
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 
@@ -24,6 +24,8 @@ import Orders from './pages/Orders';
 import ResetPassword from './pages/ResetPassword'
 import MyAccount from './pages/MyAccount';
 import SubCategoryProducts from './pages/SubCategoryProducts';
+import AboutUs from './pages/AboutUs';
+import StoreLocator from './pages/StoreLocator';
 
 function App() {
   return (
@@ -50,6 +52,8 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/stores" element={<StoreLocator />} />
         </Routes>
       </div>
       <Footer />

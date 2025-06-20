@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -28,13 +29,13 @@ export default function ForgotPassword() {
 
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Error sending an email');
+        toast.error(data.message || 'Error sending an email');
         return;
       }
       setSubmitted(true);
     } catch (error) {
       console.error("Email error:", error);
-      alert("Something went wrong!");
+      toast.error("Something went wrong!");
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Upload, Plus, X, Loader2 } from "lucide-react";
 import { createWorker } from "tesseract.js";
+import { toast } from "sonner";
 
 export default function UploadPrescription() {
   const [file, setFile] = useState(null);
@@ -139,7 +140,7 @@ export default function UploadPrescription() {
   }
 
   try {
-    const token = localStorage.getItem("token"); // <-- Get token here
+    const token = localStorage.getItem("accessToken"); // <-- Get token here
 
     const formData = new FormData();
     formData.append("file", file);
@@ -166,10 +167,12 @@ export default function UploadPrescription() {
     setDoctorName("");
     setDoctorSpecialization("");
     setMedicines([]);
-    setNotes("");
+    setNotes("Prescription uploaded successfully!");
+    toast.success()
   } catch (err) {
     console.error(err.message);
     setError(err.message);
+    toast.error(err || "Something went wrong")
   }
 };
 

@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
 import { Toaster } from 'sonner';
+import { ThemeProvider } from "../src/utils/ThemeProvider.js"
 
 // Pages
 import Login from './pages/Login';
@@ -49,8 +50,11 @@ function App() {
   
   return (
     <>
+    <ThemeProvider >
      <Toaster richColors position="top-center" />
     <Router>
+     <div className="min-h-screen bg-white text-black dark:bg-[#0d1117] dark:text-white font-sans">
+       
       <Routes>
         <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
         
@@ -106,7 +110,9 @@ function App() {
           <Route path="feedback" element={<Feedback />} />
         </Route>
       </Routes>
+      </div>
     </Router>
+    </ThemeProvider>
     </>
   );
 }

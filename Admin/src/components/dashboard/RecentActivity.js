@@ -36,16 +36,16 @@ const RecentActivity = ({ activities }) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4  text-black ">
       {activities.map((activity) => (
         <div key={activity._id} className="flex items-start">
-          <div className="mr-3 flex-shrink-0 rounded-full bg-gray-100 p-2">
+          <div className="mr-3 flex-shrink-0 rounded-full bg-gray-100 p-2  dark:bg-[#21262d]">
             {getActivityIcon(activity.type)}
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-800">{activity.title}</p>
-            <p className="text-xs text-gray-500">{activity.message}</p>
-            <p className="text-xs text-gray-400">{formatDateTime(activity.createdAt)}</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white ">{activity.title}</p>
+            <p className="text-xs text-gray-500 dark:text-white-600 ">{activity.message}</p>
+            <p className="text-xs text-gray-400 ">{formatDateTime(activity.createdAt)}</p>
           </div>
         </div>
       ))}

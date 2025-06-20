@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useCartStore } from "../store/cartStore";
 import { AuthContext } from "../authContext";
 import SearchBar from "../components/SearchBar";
+import { toast } from "sonner";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -28,12 +29,12 @@ export default function Products() {
 
   const handleAddToCart = async (product) => {
     if (!isLoggedIn) {
-      alert("Please login to add items to cart.");
+      toast.warning("Please login to add items to cart.");
       return;
     }
 
     if (product.stock <= 0) {
-      alert("This product is out of stock.");
+      toast.warning("This product is out of stock.");
       return;
     }
 
@@ -63,13 +64,13 @@ export default function Products() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.message || "Failed to add to cart");
+        toast.error(data.message || "Failed to add to cart");
         return;
       }
 
-      alert("Item added to your cart");
+      toast.success("Item added to your cart");
     } catch (error) {
-      alert("Error adding item to cart");
+      toast.error("Error adding item to cart");
     }
   };
 

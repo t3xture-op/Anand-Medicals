@@ -7,6 +7,7 @@ import {
   Search,
   XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const getStatusIcon = (status) => {
   switch (status) {
@@ -68,20 +69,25 @@ export default function Orders() {
   };
 
   const handleCancelOrder = async (orderId) => {
-    const confirmCancel = window.confirm(
-      "Are you sure you want to cancel this order?"
-    );
-    if (!confirmCancel) return;
-
-    try {
-      await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
-        method: "PATCH",
-        credentials: "include",
-      });
-      fetchOrders();
-    } catch (error) {
-      console.error("Error cancelling order", error);
-    }
+    toast("CANCEL ORDER", {
+      description: "Are you sure you want to cancel this order?",
+      action: {
+        label: "CANCEL",
+        onClick: async () => {
+          try {
+            await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+              method: "PATCH",
+              credentials: "include",
+            });
+            fetchOrders();
+            toast.success("Order cancelled")
+          } catch (error) {
+            console.error("Error cancelling order", error);
+            toast.error(error || "Failed in cancelling the order")
+          }
+        },
+      },
+    });
   };
 
   useEffect(() => {
@@ -224,17 +230,17 @@ export default function Orders() {
                       Shipping Address
                     </h3>
                     <address className="mt-2 text-sm text-gray-500 not-italic">
-                      {order.shippingAddress.fullName}
+                      {order.shippingAddress?.fullName || "N/A"}
                       <br />
-                      {order.shippingAddress.addressLine1}
+                      {order.shippingAddress?.addressLine1 || "N/A"}
                       <br />
-                      {order.shippingAddress.addressLine2 &&
-                        `${order.shippingAddress.addressLine2}, `}
-                      {order.shippingAddress.city},{" "}
-                      {order.shippingAddress.state} -{" "}
-                      {order.shippingAddress.pincode}
+                      {order.shippingAddress?.addressLine2 &&
+                        `${order.shippingAddress?.addressLine2}, `}
+                      {order.shippingAddress?.city},{" "}
+                      {order.shippingAddress?.state} -{" "}
+                      {order.shippingAddress?.pincode}
                       <br />
-                      Phone: {order.shippingAddress.phoneNumber}
+                      Phone: {order.shippingAddress?.phoneNumber}
                     </address>
                   </div>
                 </div>

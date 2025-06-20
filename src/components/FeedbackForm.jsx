@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Star } from 'lucide-react'; // Import the Star icon
-
+import { Star } from 'lucide-react'; 
+import { toast } from 'sonner';
 const FeedbackForm = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -40,6 +40,7 @@ const FeedbackForm = () => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
+                credentials:"include",
                 body: JSON.stringify(formData)
             });
 
@@ -53,13 +54,15 @@ const FeedbackForm = () => {
                 type: 'success',
                 message: data.message || 'Thank you for your feedback!'
             });
-            setFormData({ name: '', email: '', message: '', rating: 0 }); // Reset form including rating
+            toast.success("Feedback Successfully Added")
+            setFormData({ name: '', email: '', message: '', rating: 0 }); 
         } catch (error) {
             console.error('Error submitting feedback:', error);
             setStatus({
                 type: 'error',
                 message: error.message || 'Failed to submit feedback. Please try again.'
             });
+            toast.error(error || 'Error submitting feedback:')
         }
     };
 

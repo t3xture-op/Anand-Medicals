@@ -13,7 +13,7 @@ export const createRazorpayOrder = async (req, res) => {
 
   try {
     const options = {
-      amount: Math.round(amount), // ✅ convert to paise and ensure integer
+      amount: Math.round(amount), 
       currency,
       receipt,
       payment_capture: 1,

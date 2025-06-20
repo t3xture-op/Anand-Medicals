@@ -103,135 +103,140 @@ const Notifications = () => {
     }
   };
 
-  return (
-    <div className="space-y-6 fade-in">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-800">Notifications</h1>
+return (
+  <div className="space-y-6 fade-in">
+    <div className="flex items-center justify-between">
+      <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Notifications</h1>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={markAllAsRead}
-            className="flex items-center rounded-md border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <Check size={16} className="mr-1" />
-            Mark all as read
-          </button>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={markAllAsRead}
+          className="flex items-center rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700"
+        >
+          <Check size={16} className="mr-1" />
+          Mark all as read
+        </button>
 
-          <button
-            onClick={clearAll}
-            className="flex items-center rounded-md border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <X size={16} className="mr-1" />
-            Clear all
-          </button>
-        </div>
+        <button
+          onClick={clearAll}
+          className="flex items-center rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+        >
+          <X size={16} className="mr-1" />
+          Clear all
+        </button>
       </div>
+    </div>
 
-      <div className="border-b">
-        <div className="flex">
-          {["all", "order", "user", "prescription", "stock"].map((type) => (
-            <button
-              key={type}
-              onClick={() => setFilter(type)}
-              className={`relative px-4 py-2 text-sm font-medium border-b-2 ${
-                filter === type
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              }`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-              {type === "all" && unreadCount > 0 && (
-                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+    <div className="border-b border-gray-200 dark:border-gray-600">
+      <div className="flex">
+        {["all", "order", "user", "prescription", "stock"].map((type) => (
+          <button
+            key={type}
+            onClick={() => setFilter(type)}
+            className={`relative px-4 py-2 text-sm font-medium border-b-2 focus:outline-none transition-colors duration-200 ${
+              filter === type
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white"
+            }`}
+          >
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+            {type === "all" && unreadCount > 0 && (
+              <span className="ml-2 rounded-full bg-blue-100 dark:bg-blue-800 px-2 py-0.5 text-xs text-blue-800 dark:text-white">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
+    </div>
 
-      <div className="space-y-4">
-        {filteredNotifications.length > 0 ? (
-          filteredNotifications.map((n) => (
-            <div
-              key={n._id}
-              className={`rounded-lg border ${
-                n.isRead ? "bg-white" : "bg-blue-50 border-blue-100"
-              } p-4 shadow-sm hover:shadow-md`}
-            >
-              <div className="flex">
-                <div className="mr-4">{getNotificationIcon(n.type)}</div>
-                <div className="flex-1">
-                  <div className="flex justify-between">
-                    <div>
-                      <h3
-                        className={`text-base font-medium ${
-                          n.isRead ? "text-gray-900" : "text-blue-800"
-                        }`}
-                      >
-                        {n.title}
-                      </h3>
-                      <p
-                        className={`mt-1 text-sm ${
-                          n.isRead ? "text-gray-600" : "text-blue-700"
-                        }`}
-                      >
-                        {n.message}
-                      </p>
-                    </div>
-                    <div className="text-xs text-gray-500 text-right">
-                      {formatDate(n.createdAt)}
-                      {!n.isRead && (
-                        <div>
-                          <button
-                            onClick={() => markAsRead(n._id)}
-                            className="mt-1 text-xs text-blue-600 hover:text-blue-500"
-                          >
-                            Mark as read
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="mt-3 flex justify-end">
-                    <button
-                      onClick={() => handleActionClick(n.type, n.targetId)} // ✅ Pass the id too
-                      className={`rounded-md px-3 py-1.5 text-xs font-medium hover:opacity-90 ${
-                        n.type === "order"
-                          ? "bg-blue-100 text-blue-700"
-                          : n.type === "user"
-                          ? "bg-green-100 text-green-700"
-                          : n.type === "prescription"
-                          ? "bg-purple-100 text-purple-700"
-                          : n.type === "stock"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-gray-100 text-gray-700"
+    <div className="space-y-4">
+      {filteredNotifications.length > 0 ? (
+        filteredNotifications.map((n) => (
+          <div
+            key={n._id}
+            className={`rounded-lg border p-4 shadow-sm hover:shadow-md transition-colors ${
+              n.isRead
+                ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                : "bg-blue-50 dark:bg-blue-950 border-blue-100 dark:border-blue-500"
+            }`}
+          >
+            <div className="flex">
+              <div className="mr-4">{getNotificationIcon(n.type)}</div>
+              <div className="flex-1">
+                <div className="flex justify-between">
+                  <div>
+                    <h3
+                      className={`text-base font-medium ${
+                        n.isRead
+                          ? "text-gray-900 dark:text-white"
+                          : "text-blue-800 dark:text-blue-400"
                       }`}
                     >
-                      {n.type === "stock"
-                        ? "Update Stock"
-                        : n.type === "prescription"
-                        ? "Review Prescription"
-                        : `View ${
-                            n.type.charAt(0).toUpperCase() + n.type.slice(1)
-                          }`}
-                    </button>
+                      {n.title}
+                    </h3>
+                    <p
+                      className={`mt-1 text-sm ${
+                        n.isRead
+                          ? "text-gray-600 dark:text-gray-300"
+                          : "text-blue-700 dark:text-blue-300"
+                      }`}
+                    >
+                      {n.message}
+                    </p>
                   </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                    {formatDate(n.createdAt)}
+                    {!n.isRead && (
+                      <div>
+                        <button
+                          onClick={() => markAsRead(n._id)}
+                          className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
+                        >
+                          Mark as read
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={() => handleActionClick(n.type, n.targetId)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium hover:opacity-90 ${
+                      n.type === "order"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                        : n.type === "user"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                        : n.type === "prescription"
+                        ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                        : n.type === "stock"
+                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                        : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    }`}
+                  >
+                    {n.type === "stock"
+                      ? "Update Stock"
+                      : n.type === "prescription"
+                      ? "Review Prescription"
+                      : `View ${
+                        n.type.charAt(0).toUpperCase() + n.type.slice(1)
+                      }`}
+                  </button>
                 </div>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="rounded-lg border p-8 text-center shadow-sm">
-            <Bell size={48} className="mx-auto text-gray-400" />
-            <p className="mt-4 text-gray-500">No notifications found.</p>
           </div>
-        )}
-      </div>
+        ))
+      ) : (
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center shadow-sm">
+          <Bell size={48} className="mx-auto text-gray-400 dark:text-gray-500" />
+          <p className="mt-4 text-gray-500 dark:text-gray-400">No notifications found.</p>
+        </div>
+      )}
     </div>
-  );
-};
-
+  </div>
+);
+}
 export default Notifications;

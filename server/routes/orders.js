@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllOrders,getOrderById,createOrder,cancelOrder,updateOrder ,getAllOrdersOfUser} from '../controllers/orderController.js';
+import { getAllOrders,getOrderById,createOrder,cancelOrder,updateOrder ,getAllOrdersOfUser ,getAllUserOrderStats} from '../controllers/orderController.js';
 import auth from '../middlewares/auth.js';
 
 const orderRouter = express.Router();
@@ -23,6 +23,9 @@ orderRouter.patch('/:id/status',auth,updateOrder)
 
 // Cancel order
 orderRouter.patch('/:id/cancel',auth,cancelOrder)
+
+//get order status of all users
+orderRouter.get('/admin/user-order-stats',auth,getAllUserOrderStats)
 
 
 export default orderRouter;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, FileEdit, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
 const SubCategoryList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,25 +46,32 @@ const SubCategoryList = () => {
   }, [searchTerm, subCategories]);
 
   const handleDelete = async (id) => {
-    try {
-      if (window.confirm("Are you sure to delete this subcategory?")) {
-      await fetch(`http://localhost:5000/api/subcategory/delete/${id}`, {
-        method: "DELETE",
-      });
-      const updated = subCategories.filter((s) => s._id !== id);
-      setSubCategories(updated);
-      setFiltered(updated);
-    }
-    } catch (error) {
-      console.log(error)
-      alert("error occured",error)
-    }
+    toast("DELETE SUB CATEGORY", {
+      description: "Are you sure you want to delete this sub category?",
+      action: {
+        label: "DELETE",
+        onClick: async () => {
+          try {
+            await fetch(`http://localhost:5000/api/subcategory/delete/${id}`, {
+              method: "DELETE",
+            });
+            const updated = subCategories.filter((s) => s._id !== id);
+            setSubCategories(updated);
+            setFiltered(updated);
+            toast.success("Sub category deleted");
+          } catch (error) {
+            console.log(error);
+            toast.error("error occured", error);
+          }
+        },
+      },
+    });
   };
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-6 fade-in text-gray-900 dark:text-gray-100">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="text-xl font-semibold text-gray-800 ml-1">
+        <h1 className="text-xl font-semibold text-gray-800 ml-1 dark:text-gray-100">
           SubCategory Management
         </h1>
         <Link
@@ -75,24 +83,24 @@ const SubCategoryList = () => {
         </Link>
       </div>
 
-      <div className="rounded-lg border p-4 bg-white">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-lg border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#161b22] p-4 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ">
           <div className="relative flex-1">
             <Search
               size={18}
-              className="absolute left-3 top-2.5 text-gray-400"
+              className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500"
             />
             <input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name or category..."
-              className="w-full pl-10 py-2 border border-gray-300 rounded-md"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="text-blue-600 text-sm flex items-center"
+              className="text-blue-600 text-sm flex items-center dark:text-blue-400 hover:underline"
             >
               <X size={16} className="mr-1" /> Clear
             </button>
@@ -101,36 +109,41 @@ const SubCategoryList = () => {
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-500 py-8">Loading...</div>
+        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+          Loading...
+        </div>
       ) : error ? (
         <div className="text-center text-red-500 py-8">{error}</div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg border">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto bg-white dark:bg-gray-900 rounded-lg border dark:border-gray-700">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-center text-sm font-medium text-gray-700 w-12">
+                <th className="px-6 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300 w-12">
                   S.No.
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                   Emoji
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filtered.length > 0 ? (
                 filtered.map((s, index) => (
-                  <tr key={s._id} className="hover:bg-gray-50 border-b border-gray-100">
-                    <td className="px-6 py-3 text-center text-sm text-gray-800">
+                  <tr
+                    key={s._id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <td className="px-6 py-3 text-center text-sm text-gray-800 dark:text-gray-200">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-3 text-sm text-gray-800">
+                    <td className="px-6 py-3 text-sm text-gray-800 dark:text-gray-200">
                       {s.name}
                     </td>
                     <td className="px-6 py-3 text-lg">{s.emoji}</td>
@@ -138,13 +151,13 @@ const SubCategoryList = () => {
                       <div className="flex space-x-2">
                         <Link
                           to={`/sub-category/edit/${s._id}`}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           <FileEdit size={18} />
                         </Link>
                         <button
                           onClick={() => handleDelete(s._id)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -156,7 +169,7 @@ const SubCategoryList = () => {
                 <tr>
                   <td
                     colSpan="4"
-                    className="text-center text-gray-500 py-6 text-sm"
+                    className="text-center text-gray-500 dark:text-gray-400 py-6 text-sm"
                   >
                     No subcategories found.
                   </td>

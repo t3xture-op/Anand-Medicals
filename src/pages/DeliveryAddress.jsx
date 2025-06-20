@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
+import { toast } from "sonner";
 
 export default function DeliveryAddress() {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ export default function DeliveryAddress() {
 
   const handleLocationShare = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported");
+      toast.error("Geolocation not supported");
       return;
     }
     setLoading(true);
@@ -68,7 +69,7 @@ export default function DeliveryAddress() {
         setLoading(false);
       },
       (error) => {
-        alert("Location error: " + error.message);
+        toast.error("Location error: " + error.message);
         setLoading(false);
       }
     );
@@ -84,13 +85,13 @@ export default function DeliveryAddress() {
         }
       );
       const data = await res.json();
-      if (!res.ok) alert(data.message || "Default update failed");
+      if (!res.ok) toast.error(data.message || "Default update failed");
       setAddresses((prev) =>
         prev.map((addr) => ({ ...addr, isDefault: addr._id === id }))
       );
       setSelectedAddressId(id);
     } catch (error) {
-      alert("Error: " + error.message);
+      toast.error("Error: " + error.message);
     }
   };
 
@@ -105,18 +106,18 @@ export default function DeliveryAddress() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-      alert("Address added");
+      toast.success("Address added");
       setShowForm(false);
       await fetchAddresses();
       setSelectedAddressId(data.address._id);
     } catch (error) {
-      alert("Error: " + error.message);
+      toast.error("Error: " + error.message);
     }
   };
 
   const handleProceed = () => {
     if (!selectedAddressId) {
-      alert("Please select or add an address.");
+      toast.warning("Please select or add an address.");
       return;
     }
     navigate("/cart/payment", { state: { addressId: selectedAddressId } });
