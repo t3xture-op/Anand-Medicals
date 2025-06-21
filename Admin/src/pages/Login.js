@@ -52,9 +52,7 @@ const Login = () => {
   return;
    }
 
-    localStorage.setItem("accessToken", data?.data?.accessToken);
-    localStorage.setItem("refreshToken", data?.data?.refreshToken);
-    localStorage.setItem("user", JSON.stringify(data?.data?.user)); 
+  
 
     login(data?.data?.user);
 

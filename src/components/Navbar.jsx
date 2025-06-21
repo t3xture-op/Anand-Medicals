@@ -30,16 +30,46 @@ export default function Navbar() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:5000/api/user/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+
     setUser(null);
     setIsLoggedIn(false);
     setShowUserMenu(false);
     setShowLogoutConfirm(false);
     navigate("/");
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/user/am", {
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          setUser(data.user);
+          setIsLoggedIn(true);
+        } else {
+          setUser(null);
+          setIsLoggedIn(false);
+        }
+      } catch (err) {
+        setUser(null);
+        setIsLoggedIn(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

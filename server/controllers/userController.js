@@ -2,7 +2,10 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
 import PasswordReset from "../models/PasswordReset.js";
-import { sendPasswordResetEmail ,sendAccountVerificationEmail} from "../utils/emailService.js";
+import {
+  sendPasswordResetEmail,
+  sendAccountVerificationEmail,
+} from "../utils/emailService.js";
 import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import Notification from "../models/Notification.js";
@@ -32,6 +35,7 @@ export async function userRegistration(req, res) {
 }
 
 //login user
+
 export async function userLogin(req, res) {
   try {
     const { email, password } = req.body;
@@ -42,9 +46,7 @@ export async function userLogin(req, res) {
     }
 
     if (user.status !== "Active") {
-      return res.status(400).json({
-        message: "Contact Admin",
-      });
+      return res.status(400).json({ message: "Contact Admin" });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -52,28 +54,24 @@ export async function userLogin(req, res) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "24h",
-    });
-
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await generatedRefreshToken(user._id);
 
-    const updateUser = await User.findByIdAndUpdate(user?._id, {
+    await User.findByIdAndUpdate(user._id, {
       last_login_date: new Date(),
     });
 
     const cookiesOption = {
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: "strict",
     };
 
     res.cookie("accessToken", accessToken, cookiesOption);
     res.cookie("refreshToken", refreshToken, cookiesOption);
 
     return res.json({
-      message: "logined succesfully",
+      message: "Login successful",
       data: {
         accessToken,
         refreshToken,
@@ -86,39 +84,66 @@ export async function userLogin(req, res) {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Error logging in", error: error.message });
+    res.status(500).json({
+      message: "Error logging in",
+      error: error.message,
+    });
   }
 }
-
-
 
 //logout
 export async function userLogout(req, res) {
   try {
-    const userid = req.user._id;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId).select("role");
+    const prefix = user?.role === "admin" ? "admin" : "user";
 
     const cookiesOption = {
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: "strict",
     };
-    res.clearCookie("accesToken", cookiesOption);
+
+    res.clearCookie("accessToken", cookiesOption);
     res.clearCookie("refreshToken", cookiesOption);
 
-    const removeRefreshToken = await User.findByIdAndUpdate(userid, {
-      refresh_token: "",
-    });
+    // Remove stored refresh token in DB
+    await User.findByIdAndUpdate(userId, { refresh_token: "" });
 
-    return res.json({
-      message: "Logout sucessfull",
-    });
+    return res.json({ message: "Logout successful" });
   } catch (error) {
-    return response.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
 }
 
+//get current user
+export const getCurrentUser = async (req, res) => {
+  try {
+    const token = req.cookies.accessToken;
+    if (!token) {
+      return res.status(401).json({ message: "No access token found" });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN);
+    const user = await User.findById(decoded.id).select(
+      "name email image role"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ message: "Invalid or expired token", error: error.message });
+  }
+};
 
 //forgot password
 export async function forgotPassword(req, res) {
@@ -149,8 +174,6 @@ export async function forgotPassword(req, res) {
     res.status(500).json({ message: "Error sending password reset OTP" });
   }
 }
-
-
 
 //verify otp
 export async function verifyOtp(req, res) {
@@ -186,8 +209,6 @@ export async function verifyOtp(req, res) {
   }
 }
 
-
-
 //reset password
 export async function resetPassword(req, res) {
   try {
@@ -206,8 +227,6 @@ export async function resetPassword(req, res) {
   }
 }
 
-
-
 //verify account
 export const verifyAccount = async (req, res) => {
   const { email } = req.body;
@@ -222,14 +241,13 @@ export const verifyAccount = async (req, res) => {
     user.otpExpiry = expiry;
     await user.save();
 
-    sendAccountVerificationEmail(email,otp)
+    sendAccountVerificationEmail(email, otp);
 
     res.json({ message: "OTP sent" });
   } catch (err) {
     res.status(500).json({ message: "Failed to send OTP" });
   }
 };
-
 
 //verify otp for account verification
 export const verifyAccountOtp = async (req, res) => {
@@ -257,7 +275,7 @@ export const verifyAccountOtp = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
-    res.json({ message:'user registration success' });
+    res.json({ message: "user registration success" });
   } catch (err) {
     res.status(500).json({ message: "OTP verification failed" });
   }
@@ -414,7 +432,7 @@ export const changePassword = async (req, res) => {
   }
 };
 
-//get user for user
+//get details of a user
 export const getMyProfile = async (req, res) => {
   try {
     const userId = req.user.id; // populated by auth middleware

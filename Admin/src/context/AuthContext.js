@@ -7,39 +7,62 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const adminUser = localStorage.getItem('user');
-    if (adminUser) {
-      setUser(JSON.parse(adminUser));
+  // Securely fetch only admin session from backend
+  const fetchAdminUser = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/user/am', {
+        method: 'GET',
+        credentials: 'include', // Send cookies (adminAccessToken)
+      });
+
+      if (!res.ok) throw new Error('Not authenticated');
+
+      const data = await res.json();
+
+      if (!data?.user || data.user.role !== 'admin') {
+        throw new Error('Unauthorized access');
+      }
+
+      setUser(data.user);
       setIsAuthenticated(true);
+    } catch (err) {
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAdminUser();
   }, []);
 
   const login = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    setIsAuthenticated(true);
+    if (userData?.role === 'admin') {
+      setUser(userData);
+      setIsAuthenticated(true);
+    } else {
+      // Prevent accidental login as non-admin
+      console.warn('Tried to log in non-admin to admin panel');
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     setUser(null);
     setIsAuthenticated(false);
-   
   };
 
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      user,
-      loading,
-      login,
-      logout,
-      setUser
-    }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        loading,
+        login,
+        logout,
+        setUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

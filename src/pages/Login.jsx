@@ -26,10 +26,6 @@ export default function Login() {
       return;
     }
 
-    // Store tokens and user
-    localStorage.setItem("accessToken", data?.data?.accessToken);
-    localStorage.setItem("refreshToken", data?.data?.refreshToken);
-    localStorage.setItem("user", JSON.stringify(data?.data?.user)); 
 
     setUser(data?.data?.user); 
     setIsLoggedIn(true);

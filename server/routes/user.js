@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from "multer";
-import { userRegistration ,userLogin ,forgotPassword ,resetPassword ,userLogout ,verifyOtp ,getAllUsers ,getUserId ,updateProfile ,uploadProfilePhoto ,deleteProfilePhoto ,changePassword ,getMyProfile ,verifyAccount ,verifyAccountOtp} from "../controllers/userController.js";
+import { userRegistration ,userLogin ,forgotPassword ,resetPassword ,userLogout ,verifyOtp ,getAllUsers ,getUserId ,updateProfile ,getCurrentUser ,uploadProfilePhoto ,deleteProfilePhoto ,changePassword ,getMyProfile ,verifyAccount ,verifyAccountOtp} from "../controllers/userController.js";
 import auth from '../middlewares/auth.js'
 import { uploadUser } from '../middlewares/cloudinary.js';
 
@@ -9,6 +9,7 @@ const upload = multer({ dest: "uploads/" });
 
 userRouter.post('/register',userRegistration)
 userRouter.post('/login',userLogin)
+userRouter.get('/am', getCurrentUser);
 userRouter.post('/forgot-password',forgotPassword)
 userRouter.post('/reset-password',resetPassword)
 userRouter.post('/verify-otp',verifyOtp)
