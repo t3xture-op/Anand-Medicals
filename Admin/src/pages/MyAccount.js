@@ -14,6 +14,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 export default function MyAccount() {
   const [profileImage, setProfileImage] = useState(null);
@@ -54,7 +55,7 @@ export default function MyAccount() {
 
   const fetchUserData = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/user/me", {
+      const res = await fetch(`${API_BASE}/api/user/admin/me`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -94,7 +95,7 @@ export default function MyAccount() {
 
   const handleSave = async () => {
     try {
-      await fetch("http://localhost:5000/api/user/update-profile", {
+      await fetch(`${API_BASE}/api/user/admin/update-profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -138,7 +139,7 @@ export default function MyAccount() {
     formData.append("image", selectedImage);
     try {
       const res = await fetch(
-        "http://localhost:5000/api/user/upload-profile-photo",
+        `${API_BASE}/api/user/admin/upload-profile-photo`,
         {
           method: "POST",
           body: formData,
@@ -163,7 +164,7 @@ export default function MyAccount() {
   const handleDeletePhoto = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/user/delete-profile-photo",
+        `${API_BASE}/api/user/admin/delete-profile-photo`,
         {
           method: "DELETE",
           credentials: "include",
@@ -198,7 +199,7 @@ export default function MyAccount() {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/user/change-password",
+        `${API_BASE}/api/user/admin/change-password`,
         {
           method: "PUT",
           headers: {

@@ -2,6 +2,7 @@ import React, { useState,useContext } from 'react';
 import { Link,useNavigate  } from 'react-router-dom';
 import { AuthContext } from '../authContext';
 import { toast } from 'sonner';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ export default function Login() {
  const handleSubmit = async (e) => {
   e.preventDefault();
   try {
-    const response = await fetch('http://localhost:5000/api/user/login', {
+    const response = await fetch(`${API_BASE}/api/user/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

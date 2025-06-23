@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Save, ArrowLeft, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const CategoryEdit = () => {
   const { id } = useParams();
@@ -22,7 +23,7 @@ const CategoryEdit = () => {
     const fetchCategory = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/category/${id}`
+          `${API_BASE}/api/category/${id}`
         );
         if (!response.ok) throw new Error("Category not found");
         const data = await response.json();
@@ -81,10 +82,11 @@ const CategoryEdit = () => {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/category/edit/${id}`,
+        `${API_BASE}/api/category/admin/edit/${id}`,
         {
           method: "PUT",
           body: submitData,
+          credentials:"include",
         }
       );
 
@@ -107,9 +109,10 @@ const CategoryEdit = () => {
         onClick: async () => {
           try {
             const res = await fetch(
-              `http://localhost:5000/api/category/delete/${id}`,
+              `${API_BASE}/api/category/admin/delete/${id}`,
               {
                 method: "DELETE",
+                credentials:"include",
               }
             );
             if (!res.ok) throw new Error("Delete failed");

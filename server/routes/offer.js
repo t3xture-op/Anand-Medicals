@@ -4,12 +4,12 @@ import {  addOffer,  editOffer,  deleteOffer,  getAllOffers, getOfferById ,getAc
 
 const router = express.Router();
 
-router.post('/add', addOffer);
-router.put('/edit/:id', editOffer);
-router.delete('/:id', deleteOffer); 
+router.post('/admin/add', addOffer);
+router.put('/admin/edit/:id', editOffer);
+router.delete('/admin/:id', deleteOffer); 
 router.get('/', getAllOffers);
 router.get('/active',getActiveOffer)
-router.get('/:id', getOfferById);
+router.get('/admin/:id', getOfferById);
 
 
 export default router;

@@ -11,8 +11,8 @@ router.post('/', createFeedback);
 router.get('/approved', getApprovedFeedbacks);
 
 // Protected routes - Admin only (authorize is temporarily removed until defined)
-router.get('/', auth, getAllFeedbacks);
-router.patch('/:id', auth, updateFeedbackStatus);
-router.delete('/:id', auth, deleteFeedback);
+router.get('/admin/', auth, getAllFeedbacks);
+router.patch('/admin/:id', auth, updateFeedbackStatus);
+router.delete('/admin/:id', auth, deleteFeedback);
 
 export default router; 

@@ -4,6 +4,7 @@ import { useCartStore } from '../store/cartStore';
 import { ShoppingCart } from 'lucide-react';
 import { AuthContext } from '../authContext';
 import { toast } from 'sonner';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -15,7 +16,7 @@ export default function ProductDetail() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/products/${id}`);
+        const res = await fetch(`${API_BASE}/api/products/${id}`);
         const data = await res.json();
         setProduct(data);
       } catch (err) {
@@ -49,7 +50,7 @@ export default function ProductDetail() {
     });
 
     try {
-      const response = await fetch('http://localhost:5000/api/cart/add', {
+      const response = await fetch(`${API_BASE}/api/cart/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

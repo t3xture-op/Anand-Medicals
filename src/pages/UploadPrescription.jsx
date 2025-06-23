@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Upload, Plus, X, Loader2 } from "lucide-react";
 import { createWorker } from "tesseract.js";
 import { toast } from "sonner";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function UploadPrescription() {
   const [file, setFile] = useState(null);
@@ -140,8 +141,6 @@ export default function UploadPrescription() {
   }
 
   try {
-    const token = localStorage.getItem("accessToken"); // <-- Get token here
-
     const formData = new FormData();
     formData.append("file", file);
     formData.append("doctorName", doctorName);
@@ -149,7 +148,7 @@ export default function UploadPrescription() {
     formData.append("notes", notes);
     formData.append("medicines", JSON.stringify(medicines));
 
-    const response = await fetch("http://localhost:5000/api/prescription/add", {
+    const response = await fetch(`${API_BASE}/api/prescription/add`, {
       method: "POST",
       credentials: "include",
 

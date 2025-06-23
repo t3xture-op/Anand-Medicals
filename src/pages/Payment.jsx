@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate ,useLocation} from "react-router-dom";
 import { CreditCard, Truck } from "lucide-react";
 import { useCartStore } from "../store/cartStore";
 import { toast } from "sonner";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function Payment() {
   const navigate = useNavigate();
@@ -18,27 +19,32 @@ export default function Payment() {
     return sum + discountedPrice * item.quantity;
   }, 0);
 
-  const shipping = subtotal > 500 ? 0 : 50;
+  const shipping = subtotal > 500 ? 0 : 20;
   const total = subtotal + shipping;
   const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+  const location = useLocation();
 
-  useEffect(() => {
-    const selectedAddressId = localStorage.getItem("selectedAddressId");
-    if (selectedAddressId) {
-      setShippingAddress(selectedAddressId);
-    } else {
-      fetch("http://localhost:5000/api/address/default", {
-        credentials: "include",
+  
+useEffect(() => {
+  
+  const addressIdFromState = location.state?.addressId;
+
+  if (addressIdFromState) {
+    setShippingAddress(addressIdFromState);
+  } else {
+    // fallback to default address
+    fetch(`${API_BASE}/api/address/default`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.address?._id) {
+          setShippingAddress(data.address._id);
+        }
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.address?._id) {
-            setShippingAddress(data.address._id);
-          }
-        })
-        .catch((err) => console.error("Error fetching default address:", err));
-    }
-  }, []);
+      .catch((err) => console.error("Error fetching default address:", err));
+  }
+}, []);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -61,7 +67,7 @@ export default function Payment() {
       }
 
       const orderRes = await fetch(
-        "http://localhost:5000/api/payment/razorpay",
+        `${API_BASE}/api/payment/razorpay`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -88,7 +94,7 @@ export default function Payment() {
             }));
 
             const confirmRes = await fetch(
-              "http://localhost:5000/api/orders/add",
+              `${API_BASE}/api/orders/add`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -111,7 +117,7 @@ export default function Payment() {
             if (!confirmRes.ok)
               throw new Error(confirmData.message || "Order failed");
 
-            await fetch("http://localhost:5000/api/cart/clear", {
+            await fetch(`${API_BASE}/api/cart/clear`, {
               method: "DELETE",
               credentials: "include",
             });
@@ -153,7 +159,7 @@ export default function Payment() {
         paymentMethod: "cod",
       };
 
-      const response = await fetch("http://localhost:5000/api/orders/add", {
+      const response = await fetch(`${API_BASE}/api/orders/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -166,7 +172,7 @@ export default function Payment() {
         throw new Error(data?.message || "Failed to place order");
       }
 
-      await fetch("http://localhost:5000/api/cart/clear", {
+      await fetch(`${API_BASE}/api/cart/clear`, {
         method: "DELETE",
         credentials: "include",
       });

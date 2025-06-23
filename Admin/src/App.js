@@ -4,6 +4,7 @@ import { AuthContext } from './context/AuthContext';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from "../src/utils/ThemeProvider.js"
 
+
 // Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -32,6 +33,7 @@ import SubCategoryEdit from './pages/subcategories/subCategoryEdit'
 import SubCategoryAdd from './pages/subcategories/subCategoryAdd';
 import MyAccount from './pages/MyAccount'
 import Feedback from './pages/feedback/Feedback';
+import ScrollToTop from './components/ScrollToTop.js';
 
 
 // Protected Route Component
@@ -52,7 +54,9 @@ function App() {
     <>
     <ThemeProvider >
      <Toaster richColors position="top-center" />
+     
     <Router>
+     <ScrollToTop/>
      <div className="min-h-screen bg-white text-black dark:bg-[#0d1117] dark:text-white font-sans">
        
       <Routes>

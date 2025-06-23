@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
@@ -29,7 +30,7 @@ export default function SignUp() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/user/register", {
+      const response = await fetch(`${API_BASE}/api/user/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,7 +57,7 @@ export default function SignUp() {
 
   const sendOtp = async (email) => {
     try {
-      const res = await fetch("http://localhost:5000/api/user/verify-account", {
+      const res = await fetch(`${API_BASE}/api/user/verify-account`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,7 +76,7 @@ export default function SignUp() {
   const verifyOtp = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/user/verify-account-otp",
+        `${API_BASE}/api/user/verify-account-otp`,
         {
           method: "POST",
           headers: {

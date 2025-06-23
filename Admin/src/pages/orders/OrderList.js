@@ -8,6 +8,7 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -20,6 +21,7 @@ const OrderList = () => {
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [showDateRange, setShowDateRange] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -36,7 +38,7 @@ const OrderList = () => {
             .find((row) => row.startsWith("accessToken="))
             ?.split("=")[1];
 
-        const response = await fetch("http://localhost:5000/api/orders", {
+        const response = await fetch(`${API_BASE}/api/orders/admin`, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -298,19 +300,25 @@ const OrderList = () => {
               <button
                 type="button"
                 className="flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
-                onClick={() => setShowFilters(!showFilters)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDateRange((prev) => !prev);
+                }}
               >
                 <Calendar size={16} className="mr-2" />
                 Date Range
                 <ChevronDown size={16} className="ml-2" />
               </button>
 
-              {showFilters && (
-                <div className="absolute right-0 z-10 mt-2 w-72 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white">
+              {showDateRange && (
+                <div
+                  className="absolute right-0 z-10 mt-2 w-72 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="p-4">
                     <div className="mb-4 grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white">
                           From
                         </label>
                         <input
@@ -319,11 +327,11 @@ const OrderList = () => {
                           onChange={(e) =>
                             setDateRange({ ...dateRange, from: e.target.value })
                           }
-                          className="mt-1 block w-full dark:bg-[#0d1117] dark:border-gray-700 dark:text-white rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="mt-1 block w-full rounded-md border border-gray-300 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white">
                           To
                         </label>
                         <input
@@ -333,14 +341,14 @@ const OrderList = () => {
                             setDateRange({ ...dateRange, to: e.target.value })
                           }
                           min={dateRange.from}
-                          className="mt-1 block w-full rounded-md dark:bg-[#0d1117] dark:border-gray-700 dark:text-white border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="mt-1 block w-full rounded-md border border-gray-300 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                     </div>
                     <div className="flex justify-end">
                       <button
                         type="button"
-                        onClick={() => setShowFilters(false)}
+                        onClick={() => setShowDateRange(false)}
                         className="btn btn-sm btn-outline"
                       >
                         Apply
@@ -368,7 +376,12 @@ const OrderList = () => {
 
         {/* Mobile filters */}
         {showFilters && (
-          <div className="mt-4 space-y-4 border-t border-gray-200 pt-4 sm:hidden">
+          <div
+            className="mt-4 space-y-4 border-t border-gray-200 pt-4 sm:hidden"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
             {/* Order Status */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -396,7 +409,7 @@ const OrderList = () => {
               <select
                 value={paymentFilter}
                 onChange={(e) => setPaymentFilter(e.target.value)}
-                className="mt-1 block w-full rounded-md border dark:bg-[#0d1117] dark:border-gray-700 dark:text-white border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
               >
                 <option value="">All Payments</option>
                 <option value="completed">Paid</option>
@@ -414,7 +427,7 @@ const OrderList = () => {
               <select
                 value={selectedPaymentMethod}
                 onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                className="mt-1 block w-full rounded-md border dark:bg-[#0d1117] dark:border-gray-700 dark:text-white border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
               >
                 <option value="">All Methods</option>
                 <option value="cod">Cash on Delivery</option>
@@ -430,7 +443,7 @@ const OrderList = () => {
               <select
                 value={prescriptionFilter}
                 onChange={(e) => setPresFilter(e.target.value)}
-                className="mt-1 block w-full rounded-md border dark:bg-[#0d1117] dark:border-gray-700 dark:text-white border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
               >
                 <option value="">All Orders</option>
                 <option value="required">Prescription Required</option>
@@ -440,12 +453,12 @@ const OrderList = () => {
 
             {/* Date Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white">
+              <label className="block text-sm font-medium text-gray-700 dark:text-white">
                 Date Range
               </label>
               <div className="mt-1 grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white">
+                  <label className="block text-xs text-gray-500 dark:text-white">
                     From
                   </label>
                   <input
@@ -454,11 +467,11 @@ const OrderList = () => {
                     onChange={(e) =>
                       setDateRange({ ...dateRange, from: e.target.value })
                     }
-                    className="block w-full rounded-md border dark:bg-[#0d1117] dark:border-gray-700 dark:text-white border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white">
+                  <label className="block text-xs text-gray-500 dark:text-white">
                     To
                   </label>
                   <input
@@ -468,11 +481,19 @@ const OrderList = () => {
                       setDateRange({ ...dateRange, to: e.target.value })
                     }
                     min={dateRange.from}
-                    className="block w-full rounded-md border dark:bg-[#0d1117] dark:border-gray-700 dark:text-white border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
                   />
                 </div>
               </div>
             </div>
+
+            {/* Apply Button */}
+            <button
+              className="w-full mt-4 rounded-md bg-blue-600 py-2 text-sm text-white"
+              onClick={() => setShowFilters(false)}
+            >
+              Apply Filters
+            </button>
 
             {/* Clear Filters */}
             {(statusFilter ||

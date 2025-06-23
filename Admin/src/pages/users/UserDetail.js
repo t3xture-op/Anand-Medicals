@@ -13,6 +13,7 @@ import {
   XCircle,
   CheckCircle,
 } from "lucide-react";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const UserDetail = () => {
   const { id } = useParams();
@@ -31,7 +32,7 @@ const UserDetail = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/user/get/${id}`);
+        const res = await fetch(`${API_BASE}/api/user/get/${id}`);
         if (!res.ok) throw new Error("Failed to fetch user");
 
         const data = await res.json();

@@ -64,11 +64,13 @@ export async function userLogin(req, res) {
     const cookiesOption = {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
     };
 
-    res.cookie("accessToken", accessToken, cookiesOption);
-    res.cookie("refreshToken", refreshToken, cookiesOption);
+    const prefix = user.role === "admin" ? "admin" : "user";
+
+    res.cookie(`${prefix}AccessToken`, accessToken, cookiesOption);
+    res.cookie(`${prefix}RefreshToken`, refreshToken, cookiesOption);
 
     return res.json({
       message: "Login successful",
@@ -97,16 +99,17 @@ export async function userLogout(req, res) {
     const userId = req.user._id;
 
     const user = await User.findById(userId).select("role");
-    const prefix = user?.role === "admin" ? "admin" : "user";
 
     const cookiesOption = {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
     };
 
-    res.clearCookie("accessToken", cookiesOption);
-    res.clearCookie("refreshToken", cookiesOption);
+    const prefix = user?.role === "admin" ? "admin" : "user";
+
+    res.clearCookie(`${prefix}AccessToken`, cookiesOption);
+    res.clearCookie(`${prefix}RefreshToken`, cookiesOption);
 
     // Remove stored refresh token in DB
     await User.findByIdAndUpdate(userId, { refresh_token: "" });
@@ -122,7 +125,13 @@ export async function userLogout(req, res) {
 //get current user
 export const getCurrentUser = async (req, res) => {
   try {
-    const token = req.cookies.accessToken;
+    // Use the correct cookie name
+    const isAdminRoute = req.originalUrl.includes("/admin");
+    const accessTokenName = isAdminRoute
+      ? "adminAccessToken"
+      : "userAccessToken";
+    const token = req.cookies[accessTokenName];
+
     if (!token) {
       return res.status(401).json({ message: "No access token found" });
     }
@@ -312,8 +321,9 @@ export async function getUserId(req, res) {
     const deliveredOrders = orders.filter(
       (o) => o.status === "delivered"
     ).length;
+
     const totalSpent = orders
-      .filter((o) => o.paymentStatus === "completed")
+      .filter((o) => ["completed", "paid", "success"].includes(o.paymentStatus))
       .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
     res.json({
@@ -332,6 +342,7 @@ export async function getUserId(req, res) {
     res.status(500).json({ message: "Error fetching user details" });
   }
 }
+
 
 //update profile
 export const updateProfile = async (req, res) => {

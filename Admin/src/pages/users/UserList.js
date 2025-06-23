@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Calendar,
 } from "lucide-react";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const UserList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,7 +23,7 @@ const UserList = () => {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const response = await fetch("http://localhost:5000/api/user/get"); // Update with your backend base path if needed
+        const response = await fetch(`${API_BASE}/api/user/get`); // Update with your backend base path if needed
         const data = await response.json();
         setUsers(data);
         setLoading(false);
@@ -39,13 +40,12 @@ const UserList = () => {
   async function fetchOrder() {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/orders/admin/user-order-stats",
+        `${API_BASE}/api/orders/admin/user-order-stats`,
         {
           credentials: "include",
         }
       );
       const data = await res.json();
-      console.log(data);
       setOrderDetails(data);
     } catch (error) {
       console.error("Failed to fetch order:", error);
@@ -53,37 +53,47 @@ const UserList = () => {
     }
   }
 
-  // Filter users based on search term
-  const filteredUsers = users.filter((user) => {
-    return (
-      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone?.includes(searchTerm)
-    );
-  });
+  // Merge users with their order stats
+const enrichedUsers = users.map((user) => {
+  const stats = orderdetails.find((o) => o.userId === user._id) || {
+    totalOrders: 0,
+    totalSpent: 0,
+  };
+  return { ...user, ...stats };
+});
 
-  // Sort users
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    let comparison = 0;
+// Filter users based on search term
+const filteredUsers = enrichedUsers.filter((user) => {
+  return (
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.phone?.includes(searchTerm)
+  );
+});
 
-    switch (sortBy) {
-      case "name":
-        comparison = a.name.localeCompare(b.name);
-        break;
-      case "totalOrders":
-        comparison = a.totalOrders - b.totalOrders;
-        break;
-      case "totalSpent":
-        comparison = a.totalSpent - b.totalSpent;
-        break;
-      case "createdAt":
-      default:
-        comparison = new Date(a.createdAt) - new Date(b.createdAt);
-        break;
-    }
+// Sort users
+const sortedUsers = [...filteredUsers].sort((a, b) => {
+  let comparison = 0;
 
-    return sortOrder === "asc" ? comparison : -comparison;
-  });
+  switch (sortBy) {
+    case "name":
+      comparison = a.name.localeCompare(b.name);
+      break;
+    case "totalOrders":
+      comparison = a.totalOrders - b.totalOrders;
+      break;
+    case "totalSpent":
+      comparison = a.totalSpent - b.totalSpent;
+      break;
+    case "createdAt":
+    default:
+      comparison = new Date(a.createdAt) - new Date(b.createdAt);
+      break;
+  }
+
+  return sortOrder === "asc" ? comparison : -comparison;
+});
+
 
   // Format date for display
   const formatDate = (dateString) => {

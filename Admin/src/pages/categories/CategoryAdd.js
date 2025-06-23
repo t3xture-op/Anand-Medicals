@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const CategoryAdd = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const CategoryAdd = () => {
       form.append("isActive", formData.isActive);
       if (file) form.append("image", file);
 
-      const response = await fetch("http://localhost:5000/api/category/add", {
+      const response = await fetch(`${API_BASE}/api/category/admin/add`, {
         method: "POST",
         body: form,
         credentials: "include",

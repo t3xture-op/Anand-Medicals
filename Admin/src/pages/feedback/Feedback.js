@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Star } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const Feedback = () => {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -30,7 +31,7 @@ const Feedback = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:5000/api/feedback", {
+      const response = await fetch(`${API_BASE}/api/feedback/admin`, {
         credentials: "include",
       });
 
@@ -57,7 +58,7 @@ const Feedback = () => {
 
   const handleStatusUpdate = async (id, status) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/feedback/${id}`, {
+      const response = await fetch(`${API_BASE}/api/feedback/admin/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -93,7 +94,7 @@ const Feedback = () => {
         label: "DELETE",
         onClick: async () => {
           try {
-            const promise = fetch(`http://localhost:5000/api/feedback/${id}`, {
+            const promise = fetch(`${API_BASE}/api/feedback/admin/${id}`, {
               method: "DELETE",
               credentials: "include",
             });

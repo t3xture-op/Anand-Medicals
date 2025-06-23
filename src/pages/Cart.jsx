@@ -9,6 +9,7 @@ import {
 import { useCartStore } from "../store/cartStore";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Cart() {
   const [prescriptionRequired, setPrescriptionRequired] = useState(false);
   const [prescriptionUploaded, setPrescriptionUploaded] = useState(false);
   const [uploading, setUploading] = useState(false);
+  
 
   useEffect(() => {
     fetchCart();
@@ -32,7 +34,7 @@ export default function Cart() {
 
   const fetchCart = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart/get", {
+      const res = await fetch(`${API_BASE}/api/cart/get`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -64,7 +66,7 @@ export default function Cart() {
 
     try {
       setUploading(true);
-      const res = await fetch("http://localhost:5000/api/prescription/add", {
+      const res = await fetch(`${API_BASE}/api/prescription/add`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -92,7 +94,7 @@ export default function Cart() {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/cart/update-quantity",
+        `${API_BASE}/api/cart/update-quantity`,
         {
           method: "PUT",
           credentials: "include",
@@ -125,7 +127,7 @@ export default function Cart() {
   const total = subtotal + shipping;
   const handleRemoveItem = async (productId) => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart/delete", {
+      const res = await fetch(`${API_BASE}/api/cart/delete`, {
         method: "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

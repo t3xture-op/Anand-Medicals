@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 export default function OfferAdd() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function OfferAdd() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("http://localhost:5000/api/products");
+        const res = await fetch(`${API_BASE}/api/products`);
         const data = await res.json();
         setProducts(data);
       } catch (err) {
@@ -57,7 +58,7 @@ export default function OfferAdd() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/offer/add", {
+      const response = await fetch(`${API_BASE}/api/offer/admin/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function DeliveryAddress() {
   const navigate = useNavigate();
@@ -23,11 +24,12 @@ export default function DeliveryAddress() {
   const [locationShared, setLocationShared] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  
 
   // Fetch addresses
   const fetchAddresses = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/address", {
+      const res = await fetch(`${API_BASE}/api/address`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -78,7 +80,7 @@ export default function DeliveryAddress() {
   const setDefaultAddress = async (id) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/address/edit-default/${id}`,
+        `${API_BASE}/api/address/edit-default/${id}`,
         {
           method: "PUT",
           credentials: "include",
@@ -98,7 +100,7 @@ export default function DeliveryAddress() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/address/add", {
+      const res = await fetch(`${API_BASE}/api/address/add`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

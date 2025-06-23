@@ -9,6 +9,8 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -21,7 +23,7 @@ const Notifications = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/notifications");
+      const res = await fetch(`${API_BASE}/api/admin/notifications`);
       const data = await res.json();
       setNotifications(data);
     } catch (err) {
@@ -60,30 +62,33 @@ const Notifications = () => {
   };
 
   const markAllAsRead = async () => {
-    await fetch("http://localhost:5000/api/notifications/read-all", {
+    await fetch(`${API_BASE}/api/admin/notifications/read-all`, {
       method: "PATCH",
+      credentials:"include",
     });
     fetchNotifications();
   };
 
   const markAsRead = async (_id) => {
-    await fetch(`http://localhost:5000/api/notifications/read/${_id}`, {
+    await fetch(`${API_BASE}/api/admin/notifications/read/${_id}`, {
       method: "PATCH",
+      credentials:"include",
     });
     fetchNotifications();
   };
 
   const clearAll = async () => {
     if (window.confirm("Are you sure you want to clear all notifications?")) {
-      await fetch("http://localhost:5000/api/notifications/clear-all", {
+      await fetch(`${API_BASE}/api/admin/notifications/clear-all`, {
         method: "DELETE",
+        credentials:"include",
       });
       fetchNotifications();
     }
   };
   const handleActionClick = (type, id) => {
     console.log("Navigation Triggered:", { type, id });
-    if (!id) return alert("Missing target ID!");
+    if (!id) return toast.error("Missing target ID!");
 
     switch (type) {
       case "order":

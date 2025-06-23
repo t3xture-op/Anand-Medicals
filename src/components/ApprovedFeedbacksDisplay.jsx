@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const ApprovedFeedbacksDisplay = () => {
     const [feedbacks, setFeedbacks] = useState([]);
@@ -12,7 +13,7 @@ const ApprovedFeedbacksDisplay = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch('http://localhost:5000/api/feedback/approved');
+                const response = await fetch(`${API_BASE}/api/feedback/approved`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || 'Failed to fetch approved feedbacks');

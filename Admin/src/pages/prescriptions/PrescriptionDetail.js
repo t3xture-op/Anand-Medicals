@@ -10,6 +10,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 export default function PrescriptionDetail() {
   const { id } = useParams();
@@ -25,7 +26,7 @@ export default function PrescriptionDetail() {
     const fetchPrescription = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/prescription/${id}`,
+          `${API_BASE}/api/prescription/admin/${id}`,
           {
             method: "GET",
             credentials: "include",
@@ -54,7 +55,7 @@ export default function PrescriptionDetail() {
     setIsSubmitting(true);
     try {
       const res = await fetch(
-        `http://localhost:5000/api/prescription/review/${id}`,
+        `${API_BASE}/api/prescription/admin/review/${id}`,
         {
           method: "PUT",
           headers: {

@@ -3,6 +3,7 @@ import { Bell, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const Header = ({ title, toggleSidebar }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -25,7 +26,7 @@ const Header = ({ title, toggleSidebar }) => {
 
   // Notifications: SSE
   useEffect(() => {
-    const evtSource = new EventSource("http://localhost:5000/api/notifications/stream");
+    const evtSource = new EventSource(`${API_BASE}/api/admin/notifications/stream`);
 
     evtSource.onmessage = (e) => {
       try {
@@ -99,8 +100,9 @@ const Header = ({ title, toggleSidebar }) => {
 
   const markAsRead = (id) => {
     if (!id) return;
-    fetch(`http://localhost:5000/api/notifications/read/${id}`, {
+    fetch(`${API_BASE}/api/admin/notifications/read/${id}`, {
       method: "PATCH",
+      credentials:"include",
     });
     setNotifications((prev) =>
       prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
@@ -108,7 +110,7 @@ const Header = ({ title, toggleSidebar }) => {
   };
 
   const handleLogout = async () => {
-    await fetch("http://localhost:5000/api/user/logout", {
+    await fetch(`${API_BASE}/api/user/admin/logout`, {
       method: "POST",
       credentials: "include",
     });

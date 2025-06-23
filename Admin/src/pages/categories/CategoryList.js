@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, FileEdit, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const CategoryList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,7 +17,7 @@ const CategoryList = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/category");
+        const response = await fetch(`${API_BASE}/api/category`);
         if (!response.ok) throw new Error("Failed to fetch categories");
 
         const data = await response.json();
@@ -55,9 +56,10 @@ const CategoryList = () => {
           onClick: async () => {
             try {
               const response = await fetch(
-                `http://localhost:5000/api/category/delete/${id}`,
+                `${API_BASE}/api/category/admin/delete/${id}`,
                 {
                   method: "DELETE",
+                  credentials:"include"
                 }
               );
 

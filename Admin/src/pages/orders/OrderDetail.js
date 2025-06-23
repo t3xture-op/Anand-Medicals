@@ -14,6 +14,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
+
 const OrderDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ const OrderDetail = () => {
         setIsLoading(true);
 
         const orderResponse = await fetch(
-          `http://localhost:5000/api/orders/${id}`,
+          `${API_BASE}/api/orders/admin/${id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -51,7 +53,7 @@ const OrderDetail = () => {
         // If order has prescription, fetch prescription details
         if (fetchedOrder.prescriptionId) {
           const prescriptionResponse = await fetch(
-            `http://localhost:5000/api/prescriptions/${fetchedOrder.prescriptionId}`,
+            `${API_BASE}/api/prescriptions/admin/${fetchedOrder.prescriptionId}`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -85,7 +87,7 @@ const OrderDetail = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/orders/${id}/status`,
+        `${API_BASE}/api/orders/admin/${id}/status`,
         {
           method: "PATCH",
           headers: {
@@ -464,7 +466,7 @@ const OrderDetail = () => {
                   <MapPin size={16} className="mr-2 text-gray-500 dark:text-gray-300" />
                   Shipping Address
                 </h4>
-                <div className="mt-2 rounded-md bg-gray-50 p-3 text-sm text-gray-600 dark:border-gray-700 bg-white dark:bg-[#0d1117]">
+                <div className="mt-2 rounded-md  p-3 text-sm text-gray-600 dark:border-gray-700 bg-white dark:bg-[#0d1117]">
                   {order.shippingAddress ? (
                     <>
                       <p>

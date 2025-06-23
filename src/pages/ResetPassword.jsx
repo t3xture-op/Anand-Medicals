@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function ResetPassword() {
   const location = useLocation();
@@ -20,7 +21,7 @@ export default function ResetPassword() {
     }
 
     try {
-     const response = await fetch('http://localhost:5000/api/user/reset-password', {
+     const response = await fetch(`${API_BASE}/api/user/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

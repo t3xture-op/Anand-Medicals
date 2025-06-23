@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Save, ArrowLeft, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const ProductEdit = () => {
   const { id } = useParams();
@@ -32,11 +33,11 @@ const ProductEdit = () => {
     const fetchData = async () => {
       try {
         const productRes = await fetch(
-          `http://localhost:5000/api/products/${id}`
+          `${API_BASE}/api/products/${id}`
         );
-        const categoryRes = await fetch(`http://localhost:5000/api/category`);
+        const categoryRes = await fetch(`${API_BASE}/api/category`);
         const subcategoryRes = await fetch(
-          `http://localhost:5000/api/subcategory`
+          `${API_BASE}/api/subcategory`
         );
 
         if (!productRes.ok || !categoryRes.ok)
@@ -116,8 +117,9 @@ const ProductEdit = () => {
         form.append("image", selectedFile);
       }
 
-      const res = await fetch(`http://localhost:5000/api/products/edit/${id}`, {
+      const res = await fetch(`${API_BASE}/api/products/admin/edit/${id}`, {
         method: "PUT",
+        credentials:"include",
         body: form,
       });
 
@@ -140,9 +142,10 @@ const ProductEdit = () => {
         onClick: async () => {
           try {
             const res = await fetch(
-              `http://localhost:5000/api/products/delete/${id}`,
+              `${API_BASE}/api/products/admin/delete/${id}`,
               {
                 method: "DELETE",
+                credentials:"include",
               }
             );
             if (!res.ok) throw new Error("Failed to delete product");

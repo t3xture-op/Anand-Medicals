@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Trash2, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const BannerList = () => {
   const [banners, setBanners] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/banner")
+    fetch(`${API_BASE}/api/banner`)
       .then((res) => res.json())
       .then((data) => setBanners(data))
       .catch((err) => console.error("Failed to fetch banners:", err));
@@ -21,8 +22,9 @@ const BannerList = () => {
         label: "DELETE",
         onClick: async () => {
           try {
-            const res = await fetch(`http://localhost:5000/api/banner/${id}`, {
+            const res = await fetch(`${API_BASE}/api/banner/admin/${id}`, {
               method: "DELETE",
+              credentials:"include",
             });
             const result = await res.json();
             if (res.ok) {

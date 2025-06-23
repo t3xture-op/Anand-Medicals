@@ -8,6 +8,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const getStatusIcon = (status) => {
   switch (status) {
@@ -50,7 +51,7 @@ export default function Orders() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/orders/my", {
+      const res = await fetch(`${API_BASE}/api/orders/my`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -75,7 +76,7 @@ export default function Orders() {
         label: "CANCEL",
         onClick: async () => {
           try {
-            await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+            await fetch(`${API_BASE}/api/orders/${orderId}/cancel`, {
               method: "PATCH",
               credentials: "include",
             });

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react'; 
 import { toast } from 'sonner';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+
 const FeedbackForm = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -34,7 +37,7 @@ const FeedbackForm = () => {
         setStatus({ type: 'loading', message: 'Submitting feedback...' });
 
         try {
-            const response = await fetch('http://localhost:5000/api/feedback', {
+            const response = await fetch(`${API_BASE}/api/feedback`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

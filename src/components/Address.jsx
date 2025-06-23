@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, Edit3, Save, Plus, LocateFixed, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function Address() {
   const [addresses, setAddresses] = useState([]);
@@ -19,7 +20,7 @@ export default function Address() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/address", { credentials: "include" })
+    fetch(`${API_BASE}/api/address`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.addresses)) {
@@ -63,8 +64,8 @@ export default function Address() {
   const handleSave = async () => {
     const method = newAddressMode ? "POST" : "PUT";
     const url = newAddressMode
-      ? "http://localhost:5000/api/address/add"
-      : `http://localhost:5000/api/address/edit/${selectedAddressId}`;
+      ? `${API_BASE}/api/address/add`
+      : `${API_BASE}/api/address/edit/${selectedAddressId}`;
 
     const sanitizedFormData = {
       ...formData,
@@ -124,7 +125,7 @@ export default function Address() {
   const handleSetDefault = async (id) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/address/edit-default/${id}`,
+        `${API_BASE}/api/address/edit-default/${id}`,
         {
           method: "PUT",
           credentials: "include",
@@ -132,7 +133,7 @@ export default function Address() {
       );
       const data = await res.json();
       if (res.ok) {
-        const updated = await fetch("http://localhost:5000/api/address", {
+        const updated = await fetch(`${API_BASE}/api/address`, {
           credentials: "include",
         });
         const newData = await updated.json();
@@ -152,7 +153,7 @@ export default function Address() {
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/address/delete/${id}`, {
+      const res = await fetch(`${API_BASE}/api/address/delete/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

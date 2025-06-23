@@ -17,21 +17,23 @@ export async function getAllCategory(req, res) {
 }
 
 //get category by id
-export async function getCategoryById(req, res) {
+export const getCategoryById = async (req, res) => {
   try {
-    const id = req.params.id.trim();
-    const category = await Category.findById(id);
+    const categoryId = req.params.id.trim();
 
+    const category = await Category.findById(categoryId);
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    res.json(category);
-  } catch (error) {
-    console.error("Error fetching category by ID:", error);
-    return res.status(500).json({ message: "Error fetching category" });
+    const products = await Product.find({ category: categoryId });
+
+    return res.json(products); // always returns an array
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 //create category(Admin only)
 export async function createCategory(req, res) {

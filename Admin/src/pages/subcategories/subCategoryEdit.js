@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const SubCategoryEdit = () => {
   const { id } = useParams();
@@ -16,7 +17,7 @@ const SubCategoryEdit = () => {
   useEffect(() => {
     const fetchSubCategory = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/subcategory/${id}`, {
+        const res = await fetch(`${API_BASE}/api/subcategory/${id}`, {
           credentials: "include",
         });
         const data = await res.json();
@@ -54,7 +55,7 @@ const SubCategoryEdit = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/subcategory/edit/${id}`,
+        `${API_BASE}/api/subcategory/admin/edit/${id}`,
         {
           method: "PUT",
           headers: {

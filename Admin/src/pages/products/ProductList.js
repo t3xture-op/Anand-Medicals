@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -26,7 +27,7 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/products");
+      const res = await fetch(`${API_BASE}/api/products`);
       if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
       setProducts(data);
@@ -38,7 +39,7 @@ const ProductList = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/category");
+      const res = await fetch(`${API_BASE}/api/category`);
       if (!res.ok) throw new Error("Failed to fetch categories");
       const data = await res.json();
       setProductCategories(data);
@@ -56,9 +57,10 @@ const ProductList = () => {
         onClick: async () => {
           try {
             const res = await fetch(
-              `http://localhost:5000/api/products/delete/${id}`,
+              `${API_BASE}/api/products/admin/delete/${id}`,
               {
                 method: "DELETE",
+                credentials:"include",
               }
             );
             if (!res.ok) throw new Error("Delete failed");

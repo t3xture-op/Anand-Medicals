@@ -20,7 +20,8 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import { useTheme } from "../../utils/ThemeProvider.js"; // adjust path as needed
+import { useTheme } from "../../utils/ThemeProvider.js"; 
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const Sidebar = ({ closeSidebar }) => {
   const { logout } = useContext(AuthContext);
@@ -29,9 +30,13 @@ const Sidebar = ({ closeSidebar }) => {
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+ const handleLogout = async () => {
+    await fetch(`${API_BASE}/api/user/admin/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
     logout();
-    navigate("/login");
+  
   };
 
   const toggleTheme = () => {

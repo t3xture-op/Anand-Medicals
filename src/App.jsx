@@ -26,11 +26,13 @@ import MyAccount from './pages/MyAccount';
 import SubCategoryProducts from './pages/SubCategoryProducts';
 import AboutUs from './pages/AboutUs';
 import StoreLocator from './pages/StoreLocator';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <div className=" bg-gray-50 flex flex-col">
        <Toaster richColors position="top-center" />
+       <ScrollToTop/>
       <Navbar />
       <div className="flex-grow">
         <Routes>

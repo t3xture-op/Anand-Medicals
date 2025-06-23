@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();

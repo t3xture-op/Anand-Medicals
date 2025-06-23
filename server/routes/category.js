@@ -14,14 +14,15 @@ categoryRouter.get('/',getAllCategory)
 categoryRouter.get('/:id',getCategoryById)
 
 
+
 //create category(admin only)
-categoryRouter.post('/add', uploadCategory.single('image'), createCategory);
+categoryRouter.post('/admin/add', uploadCategory.single('image'), createCategory);
 
 //update category(admin only)
-categoryRouter.put('/edit/:id', uploadCategory.single('image'),updateCategory)
+categoryRouter.put('/admin/edit/:id', uploadCategory.single('image'),updateCategory)
 
 
 //delete category(admin only)
-categoryRouter.delete('/delete/:id',deleteCategory)
+categoryRouter.delete('/admin/delete/:id',deleteCategory)
 
 export default categoryRouter

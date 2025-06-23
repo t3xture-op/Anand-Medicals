@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const ProductAdd = () => {
   const navigate = useNavigate();
@@ -29,8 +30,8 @@ const ProductAdd = () => {
     async function fetchCategories() {
       try {
         const [catRes, subcatRes] = await Promise.all([
-          fetch("http://localhost:5000/api/category"),
-          fetch("http://localhost:5000/api/subcategory"), // NEW
+          fetch(`${API_BASE}/api/category`),
+          fetch(`${API_BASE}/api/subcategory`), 
         ]);
 
         if (!catRes.ok || !subcatRes.ok) throw new Error("Failed to fetch");
@@ -88,7 +89,7 @@ const ProductAdd = () => {
 
       if (file) form.append("image", file);
 
-      const response = await fetch("http://localhost:5000/api/products/add", {
+      const response = await fetch(`${API_BASE}/api/products/admin/add`, {
         method: "POST",
         body: form,
         credentials: "include",

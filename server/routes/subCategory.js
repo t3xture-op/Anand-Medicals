@@ -5,9 +5,9 @@ import auth from '../middlewares/auth.js';
 const router = express.Router();
 
 router.get('/', getAllSubCategories);
-router.post('/add',auth, addSubCategory);
-router.delete('/delete/:id',  deleteSubCategory);
-router.put('/edit/:id',auth,  updateSubCategory);
+router.post('/admin/add',auth, addSubCategory);
+router.delete('/admin/delete/:id',  deleteSubCategory);
+router.put('/admin/edit/:id',auth,  updateSubCategory);
 router.get('/:id', getSubCategoryById);
 
 export default router;

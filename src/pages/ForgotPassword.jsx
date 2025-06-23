@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-
+ const API_BASE = import.meta.env.VITE_API_BASE_URL;
+ 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -9,7 +10,7 @@ export default function ForgotPassword() {
   const [otpSubmitted, setOtpSubmitted] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
+ 
   // ✅ Redirect after successful OTP submission
   useEffect(() => {
     if (otpSubmitted) {
@@ -20,7 +21,7 @@ export default function ForgotPassword() {
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/user/forgot-password', {
+      const response = await fetch(`${API_BASE}/api/user/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -42,7 +43,7 @@ export default function ForgotPassword() {
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/user/verify-otp', {
+      const response = await fetch(`${API_BASE}/api/user/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

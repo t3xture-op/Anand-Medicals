@@ -15,6 +15,7 @@ import DashboardMetricCard from '../components/dashboard/DashboardMetricCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import TopSellingProducts from '../components/dashboard/TopSellingProducts';
 import LowStockAlert from '../components/dashboard/LowStockAlert';
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -25,7 +26,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/reports/stats', {
+        const res = await fetch(`${API_BASE}/api/reports/admin/stats`, {
           credentials: 'include',
         });
         const data = await res.json();
@@ -41,7 +42,7 @@ const Dashboard = () => {
 
     const fetchNotifications = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/notifications', {
+        const res = await fetch(`${API_BASE}/api/admin/notifications`, {
           credentials: 'include',
         });
         const data = await res.json();
@@ -59,7 +60,7 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-10 text-gray-500 dark:text-gray-400  dark:bg-[#0d1117] dark:text-white transition-colors">Loading dashboard...</div>;
+    return <div className="text-center py-10 text-gray-500   dark:bg-[#0d1117] dark:text-white transition-colors">Loading dashboard...</div>;
   }
 
   if (!stats) {

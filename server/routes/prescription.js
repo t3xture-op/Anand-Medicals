@@ -6,9 +6,9 @@ import auth  from '../middlewares/auth.js'; // Auth middleware
 const router = express.Router();
 
 router.post('/add', auth,uploadPrescription.single('file'), addPrescription);
-router.get('/all', auth, getAllPrescriptions);
-router.get('/:id',auth, getPrescriptionById);
-router.put('/review/:id',auth, reviewPrescription);
-router.delete('/:id', auth, deletePrescription)
+router.get('/admin/all', auth, getAllPrescriptions);
+router.get('/admin/:id',auth, getPrescriptionById);
+router.put('/admin/review/:id',auth, reviewPrescription);
+router.delete('/admin/:id', auth, deletePrescription)
 
 export default router;

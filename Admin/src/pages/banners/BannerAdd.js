@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const BannerAdd = () => {
   const [name, setName] = useState("");
@@ -36,8 +37,9 @@ const BannerAdd = () => {
     if (description) formData.append("description", description);
 
     try {
-      const res = await fetch("http://localhost:5000/api/banner/add", {
+      const res = await fetch(`${API_BASE}/api/banner/admin/add`, {
         method: "POST",
+        credentials:"include",
         body: formData,
       });
 

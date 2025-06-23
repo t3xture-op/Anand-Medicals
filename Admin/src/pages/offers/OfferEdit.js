@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 function OfferEdit() {
   const { id } = useParams();
@@ -20,7 +21,7 @@ function OfferEdit() {
 
   // Fetch all products
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
+    fetch(`${API_BASE}/api/products`)
       .then((res) => res.json())
       .then((data) => setAllProducts(data))
       .catch((err) => console.error("Error fetching products:", err));
@@ -28,7 +29,7 @@ function OfferEdit() {
 
   // Fetch offer data
   useEffect(() => {
-    fetch(`http://localhost:5000/api/offer/${id}`)
+    fetch(`${API_BASE}/api/offer/admin/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setOfferName(data.offerName);
@@ -86,12 +87,14 @@ function OfferEdit() {
     setIsSubmitting(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/offer/edit/${id}`,
+        `${API_BASE}/api/offer/admin/edit/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
+          credentials:"include",
           body: JSON.stringify(updatedOffer),
         }
+        
       );
 
       const result = await response.json();

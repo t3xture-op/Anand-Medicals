@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, Filter, Plus, X, Tag, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const OfferList = () => {
   const [offers, setOffers] = useState([]);
@@ -11,7 +12,7 @@ const OfferList = () => {
 
   // 🟢 Fetch offers from backend
   useEffect(() => {
-    fetch("http://localhost:5000/api/offer")
+    fetch(`${API_BASE}/api/offer`)
       .then((res) => res.json())
       .then((data) => setOffers(data))
       .catch((err) => {
@@ -53,8 +54,9 @@ const OfferList = () => {
         label: "DELETE",
         onClick: async () => {
           try {
-            const res = await fetch(`http://localhost:5000/api/offer/${id}`, {
+            const res = await fetch(`${API_BASE}/api/offer/admin/${id}`, {
               method: "DELETE",
+              credentials:"include",
             });
             if (res.ok) {
               setOffers((prev) => prev.filter((o) => o._id !== id));

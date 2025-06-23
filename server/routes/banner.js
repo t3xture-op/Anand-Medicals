@@ -9,7 +9,7 @@ const upload = multer({ dest: "uploads/" });
 
 
 router.get('/', getAllBanners);
-router.post('/add', upload.single('image'), addBanner);
-router.delete('/:id', deleteBanner);
+router.post('/admin/add', upload.single('image'), addBanner);
+router.delete('/admin/:id', deleteBanner);
 
 export default router;

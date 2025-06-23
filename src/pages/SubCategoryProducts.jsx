@@ -1,6 +1,7 @@
 // pages/SubCategoryProducts.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function SubCategoryProducts() {
   const { id } = useParams();
@@ -9,7 +10,7 @@ export default function SubCategoryProducts() {
   useEffect(() => {
     const fetchSubCategoryProducts = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/products/subcategory/${id}`);
+        const res = await fetch(`${API_BASE}/api/products/subcategory/${id}`);
         const data = await res.json();
         setProducts(data);
       } catch (err) {

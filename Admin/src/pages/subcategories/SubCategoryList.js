@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, FileEdit, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const SubCategoryList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,7 +16,7 @@ const SubCategoryList = () => {
   useEffect(() => {
     const fetchSubCategories = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/subcategory");
+        const res = await fetch(`${API_BASE}/api/subcategory`);
         const data = await res.json();
 
         if (!res.ok || !Array.isArray(data)) {
@@ -52,8 +53,9 @@ const SubCategoryList = () => {
         label: "DELETE",
         onClick: async () => {
           try {
-            await fetch(`http://localhost:5000/api/subcategory/delete/${id}`, {
+            await fetch(`${API_BASE}/api/subcategory/admin/delete/${id}`, {
               method: "DELETE",
+              credentials:"include",
             });
             const updated = subCategories.filter((s) => s._id !== id);
             setSubCategories(updated);
