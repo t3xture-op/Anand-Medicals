@@ -1,4 +1,5 @@
 import Category from "../models/Category.js";
+import Product from "../models/Product.js";
 import slugify from "slugify";
 import { v2 as cloudinary } from 'cloudinary';
 import {extractPublicId} from 'cloudinary-build-url';
@@ -31,7 +32,7 @@ export const getCategoryById = async (req, res) => {
     return res.json(products); // always returns an array
   } catch (err) {
     console.error("Error:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: err.message });
   }
 };
 

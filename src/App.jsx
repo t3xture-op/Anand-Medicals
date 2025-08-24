@@ -27,6 +27,7 @@ import SubCategoryProducts from './pages/SubCategoryProducts';
 import AboutUs from './pages/AboutUs';
 import StoreLocator from './pages/StoreLocator';
 import ScrollToTop from './components/ScrollToTop';
+import MedicinesPage from './pages/MedicinesPage';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/stores" element={<StoreLocator />} />
+          <Route path="/medicines" element={<MedicinesPage />} />
         </Routes>
       </div>
       <Footer />

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 
 const LowStockAlert = () => {
@@ -8,7 +9,7 @@ const LowStockAlert = () => {
   useEffect(() => {
     const fetchLowStock = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/notifications", {
+        const res = await fetch(`${API_BASE}/api/admin/notifications`, {
           credentials: "include",
         });
         const data = await res.json();

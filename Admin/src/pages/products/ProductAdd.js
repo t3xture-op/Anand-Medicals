@@ -189,7 +189,6 @@ const ProductAdd = () => {
                 name="subcategory"
                 value={formData.subcategory}
                 onChange={handleChange}
-                required
                 className="form-input dark:bg-[#0d1117] dark:border-gray-700 dark:text-gray-100"
               >
                 <option value="">Select a subcategory</option>
