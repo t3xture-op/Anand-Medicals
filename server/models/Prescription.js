@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
+import Product from './Product.js';
 
 const prescriptionSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
   },
   image: {
     type: String,
@@ -12,16 +12,18 @@ const prescriptionSchema = new mongoose.Schema({
   },
   doctorName: {
     type: String,
-    required: true
   },
   doctorSpecialization: String,
-  medicines: [{
-    name: {
-      type: String,
-    },
-    dosage: String,
-    frequency: String
-  }],
+   order: { 
+    type: mongoose.Schema.Types.ObjectId,
+     ref: "Order",
+     default: null
+     },
+  
+  medicine:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:Product,
+  },
   notes: String,
   status: {
     type: String,

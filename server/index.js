@@ -20,6 +20,7 @@ import subCategoryRoutes from "./routes/subCategory.js";
 import feedbackRoutes from "./routes/feedback.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import authRoutes from './routes/auth.js'
+import productReqRoutes from './routes/productReq.js'
 
 dotenv.config();
 
@@ -78,16 +79,9 @@ app.use("/api/banner", bannerRoutes);
 app.use("/api/subcategory", subCategoryRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/product-request",productReqRoutes)
 
-// Serve static files in production
-// if (process.env.NODE_ENV === "production") {
-//   const __dirname = dirname(fileURLToPath(import.meta.url));
-//   app.use(express.static(join(__dirname, "../dist")));
 
-//   app.get("*", (req, res) => {
-//     res.sendFile(join(__dirname, "../dist/index.html"));
-//   });
-// }
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

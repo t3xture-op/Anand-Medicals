@@ -34,6 +34,10 @@ import SubCategoryAdd from './pages/subcategories/subCategoryAdd';
 import MyAccount from './pages/MyAccount'
 import Feedback from './pages/feedback/Feedback';
 import ScrollToTop from './components/ScrollToTop.js';
+import RequestList from './pages/productrequest/RequestList.js';
+import RequestDetail from './pages/productrequest/RequestDetail.js';
+import RequestProductAdd from './pages/productrequest/RequestProductAdd.js';
+
 
 
 // Protected Route Component
@@ -89,6 +93,11 @@ function App() {
           {/* Order Routes */}
           <Route path="orders" element={<OrderList />} />
           <Route path="orders/:id" element={<OrderDetail />} />
+
+          {/* Product Request */}
+          <Route path="product-req" element={<RequestList />} />
+          <Route path="product-req/:id" element={<RequestDetail />} />
+          <Route path="product-req/:id/add" element={<RequestProductAdd />} />
           
           {/* User Routes */}
           <Route path="users" element={<UserList />} />

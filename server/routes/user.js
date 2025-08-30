@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from "multer";
-import { userRegistration ,userLogin ,forgotPassword ,resetPassword ,userLogout ,verifyOtp ,getAllUsers ,getUserId ,updateProfile ,getCurrentUser ,uploadProfilePhoto ,deleteProfilePhoto ,changePassword ,getMyProfile ,verifyAccount ,verifyAccountOtp} from "../controllers/userController.js";
+import { userRegistration ,userLogin , markNotificationAsRead ,getUserNotifications, forgotPassword ,resetPassword ,userLogout ,verifyOtp ,getAllUsers ,getUserId ,updateProfile ,getCurrentUser ,uploadProfilePhoto ,deleteProfilePhoto ,changePassword ,getMyProfile ,verifyAccount ,verifyAccountOtp} from "../controllers/userController.js";
 import auth from '../middlewares/auth.js'
 import { uploadUser } from '../middlewares/cloudinary.js';
 
@@ -23,6 +23,8 @@ userRouter.post('/upload-profile-photo',auth, uploadUser.single('image'), upload
 userRouter.delete('/delete-profile-photo', auth, deleteProfilePhoto);
 userRouter.put('/change-password', auth, changePassword);
 userRouter.get("/me",auth,getMyProfile)
+userRouter.get("/notifications",auth ,getUserNotifications)
+userRouter.patch("/notifications/:id/read",auth ,markNotificationAsRead)
 
 
 //admin routes

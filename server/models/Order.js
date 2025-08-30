@@ -58,6 +58,10 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
     default: "pending",
   },
+  prescription_status:{
+    type:Boolean,
+    default:false
+  },
   deliveryDate: {
     type: Date,
     default: "",

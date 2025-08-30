@@ -56,13 +56,6 @@ export default function Cart() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("doctorName", "Dr. John Doe"); // default/fake, or add form inputs later
-    formData.append("doctorSpecialization", "General Medicine");
-    formData.append("notes", "Uploaded via cart page");
-    formData.append(
-      "medicines",
-      JSON.stringify([{ name: "Required", dosage: "", frequency: "" }])
-    );
 
     try {
       setUploading(true);

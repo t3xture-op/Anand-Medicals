@@ -43,6 +43,10 @@ const Layout = () => {
       if (path === "/orders") return "Orders";
       return "Order Details";
     }
+    if (path.startsWith("/product-req")) {
+      if (path === "/product-req") return "Product Request";
+      return "New Request Details";
+    }
     if (path.startsWith("/users")) {
       if (path === "/users") return "Users";
       return "User Details";

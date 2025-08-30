@@ -28,6 +28,8 @@ import AboutUs from './pages/AboutUs';
 import StoreLocator from './pages/StoreLocator';
 import ScrollToTop from './components/ScrollToTop';
 import MedicinesPage from './pages/MedicinesPage';
+import { RequestMedicine}  from './pages/RequestMedicine';
+import ProductAvailabilityPopup from './components/ProductAvailablePopup'
 
 function App() {
   return (
@@ -58,9 +60,12 @@ function App() {
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/stores" element={<StoreLocator />} />
           <Route path="/medicines" element={<MedicinesPage />} />
+          <Route path="/request-product" element={<RequestMedicine />} />
+          
         </Routes>
       </div>
       <Footer />
+       <ProductAvailabilityPopup API_BASE={import.meta.env.VITE_API_BASE_URL} />
     </div>
   );
 }

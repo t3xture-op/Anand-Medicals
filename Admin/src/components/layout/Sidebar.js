@@ -19,8 +19,9 @@ import {
   MessageSquare,
   Sun,
   Moon,
+  PackagePlus,
 } from "lucide-react";
-import { useTheme } from "../../utils/ThemeProvider.js"; 
+import { useTheme } from "../../utils/ThemeProvider.js";
 const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const Sidebar = ({ closeSidebar }) => {
@@ -30,13 +31,12 @@ const Sidebar = ({ closeSidebar }) => {
 
   const navigate = useNavigate();
 
- const handleLogout = async () => {
+  const handleLogout = async () => {
     await fetch(`${API_BASE}/api/user/admin/logout`, {
       method: "POST",
       credentials: "include",
     });
     logout();
-  
   };
 
   const toggleTheme = () => {
@@ -56,8 +56,12 @@ const Sidebar = ({ closeSidebar }) => {
       label: "Sub Category",
     },
     { path: "/products", icon: <Package size={20} />, label: "Products" },
+    {
+      path: "/product-req",
+      icon: <PackagePlus size={20} />,
+      label: "Product Request",
+    },
     { path: "/orders", icon: <ShoppingCart size={20} />, label: "Orders" },
-    { path: "/users", icon: <Users size={20} />, label: "Users" },
     {
       path: "/prescriptions",
       icon: <FileText size={20} />,
@@ -70,6 +74,7 @@ const Sidebar = ({ closeSidebar }) => {
       label: "Banners",
     },
     { path: "/reports", icon: <BarChart2 size={20} />, label: "Reports" },
+    { path: "/users", icon: <Users size={20} />, label: "Users" },
     {
       path: "/notifications",
       icon: <Bell size={20} />,
@@ -98,7 +103,11 @@ const Sidebar = ({ closeSidebar }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="mt-6 flex-1 overflow-y-auto px-4 space-y-1">
+      <nav
+        className="  mt-6 flex-1 overflow-y-auto px-4 space-y-1
+    scrollbar-thin scrollbar-thumb-black scrollbar-thumb-rounded-full scrollbar-track-transparent
+    dark:scrollbar-thumb-gray-800 dark:scrollbar-track-gray-900"
+      >
         {navItems.map((item) => (
           <NavLink
             key={item.path}

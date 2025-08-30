@@ -464,3 +464,46 @@ export const getMyProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+export async function getUserNotifications(req, res) {
+  try {
+    // req.user is available if you're using auth middleware
+    const userId = req.user._id;
+
+    const notifications = await Notification.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(10); // optional: only latest 10
+
+    res.json(notifications);
+  } catch (err) {
+    console.error("Error fetching notifications:", err);
+    res.status(500).json({ message: "Error fetching notifications" });
+  }
+}
+
+
+export const markNotificationAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the notification for the logged-in user
+    const notification = await Notification.findOne({
+      _id: id,
+      user: req.user._id,  // ensure it belongs to current user
+    });
+
+    if (!notification) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    notification.isRead = true;
+    await notification.save();
+
+    res.json({ message: "Notification marked as read", notification });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    res.status(500).json({ message: "Error marking notification as read" });
+  }
+};

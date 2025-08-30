@@ -9,7 +9,39 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-gray-50;
+ ;
+}
+
+/* Chrome/Edge/Brave */
+::-webkit-scrollbar {
+  width: 8px;
+  scrollbar-color:black
+}
+::-webkit-scrollbar-thumb {
+  background-color: black; 
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: gray transparent;
+}
+
+/* Dark mode scrollbars */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #374151; /* gray-700 */
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #111827; /* gray-900 */
+}
+
+.dark * {
+  scrollbar-color: #374151 #111827;
 }
 
 /* Animations */

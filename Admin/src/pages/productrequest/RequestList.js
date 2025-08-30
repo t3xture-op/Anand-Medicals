@@ -6,158 +6,110 @@ import {
   ChevronDown,
   Calendar,
   X,
-  ExternalLink,
+  FileEdit,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
-const OrderList = () => {
-  const [orders, setOrders] = useState([]);
+function RequestList() {
+  const [reqProducts, setReqProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [paymentFilter, setPaymentFilter] = useState("");
-  const [prescriptionFilter, setPresFilter] = useState("");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [showDateRange, setShowDateRange] = useState(false);
 
   const dropdownRef = useRef(null);
-
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const token =
-          localStorage.getItem("accessToken") ||
-          document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("accessToken="))
-            ?.split("=")[1];
-
-        const response = await fetch(`${API_BASE}/api/orders/admin`, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          if (response.status === 401 || response.status === 403) {
-            window.location.href = "/login";
-            return;
-          }
-          throw new Error("Failed to fetch orders");
-        }
-
-        const data = await response.json();
-        setOrders(data);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError(
-          err.message || "Failed to fetch orders. Please try again later."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
-
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowFilters(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    fetchProductRequest();
   }, []);
 
-  const filteredOrders = orders.filter((order) => {
+  const fetchProductRequest = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/product-request/all`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      setReqProducts(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error loading requests:", err);
+      toast.error("Failed to load request");
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  const filteredOrders = reqProducts.filter((reqProducts) => {
     const matchesSearch =
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+      reqProducts.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (reqProducts.manufacturer &&
+        reqProducts.manufacturer
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()));
 
-    const matchesPaymentMethod = selectedPaymentMethod
-      ? order.paymentMethod === selectedPaymentMethod
+    const matchesStatus = statusFilter
+      ? reqProducts.request_status === statusFilter
       : true;
-
-    const matchesStatus = statusFilter ? order.status === statusFilter : true;
-
-    const matchesPayment = paymentFilter
-      ? order.paymentStatus === paymentFilter
-      : true;
-
-    const matchesPrescription =
-      prescriptionFilter === "required"
-        ? order.prescription_status === true
-        : prescriptionFilter === "notRequired"
-        ? order.prescription_status === false
-        : true;
 
     let matchesDate = true;
     if (dateRange.from && dateRange.to) {
-      const orderDate = new Date(order.orderDate);
+      const reqDate = new Date(reqProducts.createdAt);
       const fromDate = new Date(dateRange.from);
       const toDate = new Date(dateRange.to);
       toDate.setHours(23, 59, 59);
 
-      matchesDate = orderDate >= fromDate && orderDate <= toDate;
+      matchesDate = reqDate >= fromDate && reqDate <= toDate;
     }
 
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesPayment &&
-      matchesPrescription &&
-      matchesDate &&
-      matchesPaymentMethod
-    );
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const getStatusBadge = (status) => {
     switch (status) {
       case "pending":
         return "bg-amber-100 text-amber-800";
-      case "processing":
-        return "bg-blue-100 text-blue-800";
-      case "shipped":
-        return "bg-purple-100 text-purple-800";
-      case "delivered":
+      case "available":
         return "bg-green-100 text-green-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getPaymentBadge = (status) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-amber-100 text-amber-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      case "refunded":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-gray-100 text-gray-800";
     }
   };
 
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("");
-    setPaymentFilter("");
-    setPresFilter("");
     setDateRange({ from: "", to: "" });
+  };
+
+  const handleDelete = async (id) => {
+    toast("DELETE PRODUCT", {
+      description: "Are you sure you want to delete this request?",
+      action: {
+        label: "DELETE",
+        onClick: async () => {
+          try {
+            const res = await fetch(
+              `${API_BASE}/api/product-request/delete/${id}`,
+              {
+                method: "DELETE",
+                credentials: "include",
+              }
+            );
+            if (!res.ok) throw new Error("Delete failed");
+            const updated = reqProducts.filter((p) => p._id !== id);
+            setReqProducts(updated)
+            toast.success("Product request deleted successfully");
+          } catch (err) {
+            console.error("Error deleting product request:", err);
+            toast.error("Error deleting product request: " + err.message);
+          }
+        },
+      },
+    });
   };
 
   const formatDate = (dateString) => {
@@ -185,7 +137,7 @@ const OrderList = () => {
         <div className="flex">
           <div className="ml-3">
             <h3 className="text-sm font-medium text-red-800">
-              Error loading orders
+              Error loading request
             </h3>
             <div className="mt-2 text-sm text-red-700">
               <p>{error}</p>
@@ -201,7 +153,7 @@ const OrderList = () => {
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
-          Order Management
+          Product Request Management
         </h1>
       </div>
 
@@ -229,15 +181,9 @@ const OrderList = () => {
           >
             <Filter size={18} className="mr-2" />
             Filters
-            {(statusFilter ||
-              paymentFilter ||
-              prescriptionFilter ||
-              dateRange.from) && (
+            {(statusFilter || dateRange.from) && (
               <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                {(statusFilter ? 1 : 0) +
-                  (paymentFilter ? 1 : 0) +
-                  (prescriptionFilter ? 1 : 0) +
-                  (dateRange.from ? 1 : 0)}
+                {(statusFilter ? 1 : 0) + (dateRange.from ? 1 : 0)}
               </span>
             )}
           </button>
@@ -252,45 +198,7 @@ const OrderList = () => {
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-
-            {/*Payment methoed filter*/}
-            <select
-              value={selectedPaymentMethod}
-              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-              className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
-            >
-              <option value="">All Payments</option>
-              <option value="cod">Cash on Delivery</option>
-              <option value="online">Online</option>
-            </select>
-
-            {/* Payment Status filter */}
-            <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-              className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
-            >
-              <option value="">All Payments</option>
-              <option value="completed">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
-            </select>
-
-            {/* Prescription filter */}
-            <select
-              value={prescriptionFilter}
-              onChange={(e) => setPresFilter(e.target.value)}
-              className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
-            >
-              <option value="">All Orders</option>
-              <option value="required">Prescription Required</option>
-              <option value="notRequired">No Prescription</option>
+              <option value="available">Available</option>
             </select>
 
             {/* Date Range Dropdown */}
@@ -357,10 +265,7 @@ const OrderList = () => {
               )}
             </div>
 
-            {(statusFilter ||
-              paymentFilter ||
-              prescriptionFilter ||
-              dateRange.from) && (
+            {(statusFilter || dateRange.from) && (
               <button
                 onClick={clearFilters}
                 className="flex items-center text-sm text-blue-600 hover:text-blue-500"
@@ -383,7 +288,7 @@ const OrderList = () => {
             {/* Order Status */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Order Status
+                Request Status
               </label>
               <select
                 value={statusFilter}
@@ -392,60 +297,7 @@ const OrderList = () => {
               >
                 <option value="">All Statuses</option>
                 <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            {/* Payment Status */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Payment Status
-              </label>
-              <select
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
-              >
-                <option value="">All Payments</option>
-                <option value="completed">Paid</option>
-                <option value="pending">Pending</option>
-                <option value="failed">Failed</option>
-                <option value="refunded">Refunded</option>
-              </select>
-            </div>
-
-            {/* Payment Method */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Payment Method
-              </label>
-              <select
-                value={selectedPaymentMethod}
-                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
-              >
-                <option value="">All Methods</option>
-                <option value="cod">Cash on Delivery</option>
-                <option value="online">Online</option>
-              </select>
-            </div>
-
-            {/* Prescription */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Prescription
-              </label>
-              <select
-                value={prescriptionFilter}
-                onChange={(e) => setPresFilter(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-[#0d1117] dark:border-gray-700 dark:text-white"
-              >
-                <option value="">All Orders</option>
-                <option value="required">Prescription Required</option>
-                <option value="notRequired">No Prescription</option>
+                <option value="available">Available</option>
               </select>
             </div>
 
@@ -494,11 +346,7 @@ const OrderList = () => {
             </button>
 
             {/* Clear Filters */}
-            {(statusFilter ||
-              paymentFilter ||
-              selectedPaymentMethod ||
-              prescriptionFilter ||
-              dateRange.from) && (
+            {(statusFilter || dateRange.from) && (
               <button
                 onClick={clearFilters}
                 className="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-blue-600 shadow-sm hover:bg-gray-50"
@@ -511,21 +359,20 @@ const OrderList = () => {
         )}
       </div>
 
-      {/* Orders table */}
+      {/*  table */}
       <div className="table-container rounded-md border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#161b22] p-2 shadow-sm">
         <table className="table w-full border-collapse text-sm bg-white dark:bg-[#161b22]">
           <thead className="table-header bg-gray-100 dark:bg-[#21262d]">
             <tr>
               {[
                 "S.No.",
-                "Order Number",
+                "Request Number",
+                "Name",
+                "Quantity",
+                "Manufacturer",
+                "Category",
                 "Customer",
                 "Date",
-                "Total",
-                "Status",
-                "Payment Method",
-                "Payment",
-                "Prescription",
                 "Actions",
               ].map((title, idx) => (
                 <th
@@ -539,71 +386,81 @@ const OrderList = () => {
           </thead>
           <tbody className="table-body bg-white dark:bg-[#161b22] divide-y divide-gray-200 dark:divide-gray-700">
             {filteredOrders.length > 0 ? (
-              filteredOrders.map((order, index) => (
+              filteredOrders.map((req, index) => (
                 <tr
-                  key={order.id}
+                  key={req._id}
                   className="hover:bg-gray-50 dark:hover:bg-[#1e242c] transition"
                 >
+                  {/* Serial Number */}
                   <td className="table-cell text-center font-medium text-gray-800 dark:text-gray-400">
                     {index + 1}
                   </td>
+
+                  {/* Request Number (using _id) */}
                   <td className="table-cell font-medium text-gray-800 dark:text-gray-400">
-                    {order.orderNumber}
+                    {req._id}
                   </td>
+
+                  {/* Name */}
                   <td className="table-cell text-gray-700 dark:text-gray-400">
-                    {order.customerName}
+                    {req.name}
                   </td>
+
+                  {/* Quantity */}
                   <td className="table-cell text-gray-700 dark:text-gray-400">
-                    {formatDate(order.orderDate)}
+                    {req.quantity}
                   </td>
-                  <td className="table-cell font-medium text-gray-800 dark:text-gray-400">
-                    ₹{order.totalAmount.toFixed(2)}
+
+                  {/* Manufacturer */}
+                  <td className="table-cell text-gray-700 dark:text-gray-400">
+                    {req.manufacturer || "N/A"}
                   </td>
+
+                  {/* Category */}
+                  <td className="table-cell text-gray-700 dark:text-gray-400">
+                    {req.category || "N/A"}
+                  </td>
+
+                  {/* Customer (from user populate) */}
+                  <td className="table-cell text-gray-700 dark:text-gray-400">
+                    {req.user?.name || "N/A"}
+                  </td>
+
+                  {/* Date */}
+                  <td className="table-cell text-gray-700 dark:text-gray-400">
+                    {formatDate(req.createdAt)}
+                  </td>
+
+                  {/* Status */}
                   <td className="table-cell">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(
-                        order.status
+                        req.request_status
                       )}`}
                     >
-                      {order.status.charAt(0).toUpperCase() +
-                        order.status.slice(1)}
+                      {req.request_status.charAt(0).toUpperCase() +
+                        req.request_status.slice(1)}
                     </span>
-                  </td>
-                  <td className="table-cell capitalize text-gray-700 dark:text-gray-400">
-                    {order.paymentMethod}
-                  </td>
-                  <td className="table-cell">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getPaymentBadge(
-                        order.paymentStatus
-                      )}`}
-                    >
-                      {order.paymentStatus === "completed"
-                        ? "Paid"
-                        : order.paymentStatus.charAt(0).toUpperCase() +
-                          order.paymentStatus.slice(1)}
-                    </span>
-                  </td>
-                  <td className="table-cell">
-                    {order.prescription_status? (
-                      <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                        Required
-                      </span>
-                    ) : (
-                      <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                        Not Required
-                      </span>
-                    )}
                   </td>
 
+                  {/* Actions */}
                   <td className="table-cell">
-                    <Link
-                      to={`/orders/${order.id}`}
-                      className="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900"
-                    >
-                      <ExternalLink size={12} className="mr-1" />
-                      View Details
-                    </Link>
+                    <div className="flex space-x-2">
+                      <Link
+                        to={`/product-req/${req._id}`}
+                        className="rounded-md p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900"
+                        title="Edit"
+                      >
+                        <FileEdit size={18} />
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(req._id)}
+                        className="rounded-md p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+                        title="Delete"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -613,9 +470,9 @@ const OrderList = () => {
                   colSpan="10"
                   className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400"
                 >
-                  {orders.length === 0
-                    ? "No orders found."
-                    : "No orders match your criteria."}
+                  {reqProducts.length === 0
+                    ? "No product request found."
+                    : "No request match your criteria."}
                 </td>
               </tr>
             )}
@@ -624,6 +481,6 @@ const OrderList = () => {
       </div>
     </div>
   );
-};
+}
 
-export default OrderList;
+export default RequestList;

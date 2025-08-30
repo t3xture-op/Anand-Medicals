@@ -3,16 +3,18 @@ import Product from "../models/Product.js";
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
 import { notificationEmitter } from "../routes/notification.js";
-import { applyActiveOfferToProduct } from "../utils/applyActiveOfferToProduct.js"
+import { applyActiveOfferToProduct } from "../utils/applyActiveOfferToProduct.js";
 import Offer from "../models/offers.js";
+import Prescription from "../models/Prescription.js";
 import mongoose from "mongoose";
-
 
 // Get all orders of a user
 export async function getAllOrdersOfUser(req, res) {
   try {
     // Get all active offers first
-    const activeOffers = await Offer.find({ status: "active" }).select("products");
+    const activeOffers = await Offer.find({ status: "active" }).select(
+      "products"
+    );
 
     // Flatten product IDs that are on offer
     const offerProductIds = new Set(
@@ -51,16 +53,13 @@ export async function getAllOrdersOfUser(req, res) {
         };
       })
     );
-    
-  
+
     res.json(updatedOrders);
   } catch (error) {
     console.error("Error fetching user orders:", error);
     res.status(500).json({ message: "Error fetching orders" });
   }
 }
-
-
 
 // Get order by ID
 export async function getOrderById(req, res) {
@@ -75,8 +74,14 @@ export async function getOrderById(req, res) {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    // Fetch prescription linked to this order
+    const prescription = await Prescription.findOne({ order: order._id })
+      .populate("user", "name email image");
+
     // Fetch active offers
-    const activeOffers = await Offer.find({ status: "active" }).select("products");
+    const activeOffers = await Offer.find({ status: "active" }).select(
+      "products"
+    );
 
     const offerProductIds = new Set(
       activeOffers.flatMap((offer) => offer.products.map((p) => p.toString()))
@@ -85,10 +90,7 @@ export async function getOrderById(req, res) {
     // Apply active offer price to each product in the order
     const updatedItems = await Promise.all(
       order.items.map(async (item) => {
-        if (
-          item.product &&
-          offerProductIds.has(item.product._id.toString())
-        ) {
+        if (item.product && offerProductIds.has(item.product._id.toString())) {
           const updatedProduct = await applyActiveOfferToProduct(item.product);
           item.product = updatedProduct;
         }
@@ -96,10 +98,12 @@ export async function getOrderById(req, res) {
       })
     );
 
-    // Return updated order
+    // Return enriched order (prescription info included)
     res.json({
       ...order.toObject(),
       items: updatedItems,
+      prescriptionId: prescription ? prescription._id : null,   // ✅ what your FE expects
+      prescription: prescription || null,                      // ✅ full object if needed
     });
   } catch (error) {
     console.error("Error fetching order:", error);
@@ -134,11 +138,7 @@ export const getAllOrders = async (req, res) => {
       status: order.status,
       paymentStatus: order.paymentStatus,
       paymentMethod: order.paymentMethod,
-      prescriptionRequired: order.items.some(
-        (item) => item.product?.requiresPrescription || false
-      ),
-      prescriptionStatus: order.prescriptionStatus || "notRequired",
-      shippingAddress: order.shippingAddress,
+      prescription_status: order.prescription_status ?? false,
     }));
 
     res.status(200).json(formattedOrders);
@@ -159,8 +159,8 @@ export async function createOrder(req, res) {
       shippingAddress,
       totalAmount,
       paymentMethod,
-      paymentInfo,      
-      paymentStatus,     
+      paymentInfo,
+      paymentStatus,
     } = req.body;
 
     // Get user object to use for name in notification
@@ -213,11 +213,21 @@ export async function createOrder(req, res) {
       totalAmount,
       paymentMethod,
       status: "pending",
-      paymentStatus: paymentMethod === "online" ? (paymentStatus || "completed") : "pending", // ✅
-      paymentInfo: paymentMethod === "online" ? paymentInfo : undefined,                      // ✅
+      paymentStatus:
+        paymentMethod === "online" ? paymentStatus || "completed" : "pending", // ✅
+      paymentInfo: paymentMethod === "online" ? paymentInfo : undefined, // ✅
     });
 
     await order.save();
+
+    const updatedPrescriptions = await Prescription.updateMany(
+      { user: req.user._id, order: null },
+      { $set: { order: order._id } }
+    );
+    if (updatedPrescriptions.modifiedCount > 0) {
+      order.prescription_status = true;
+      await order.save();
+    }
 
     const notification = new Notification({
       title: "New Order Received",
@@ -237,7 +247,6 @@ export async function createOrder(req, res) {
       .json({ message: "Error creating order", error: error.message });
   }
 }
-
 
 // Update order status (admin only)
 export async function updateOrder(req, res) {
@@ -305,8 +314,7 @@ export async function cancelOrder(req, res) {
   }
 }
 
-
-//get order status of all user 
+//get order status of all user
 
 export async function getAllUserOrderStats(req, res) {
   try {

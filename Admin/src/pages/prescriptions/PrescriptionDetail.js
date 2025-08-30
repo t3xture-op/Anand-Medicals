@@ -21,24 +21,25 @@ export default function PrescriptionDetail() {
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   useEffect(() => {
     const fetchPrescription = async () => {
       try {
-        const res = await fetch(
-          `${API_BASE}/api/prescription/admin/${id}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const res = await fetch(`${API_BASE}/api/prescription/admin/${id}`, {
+          method: "GET",
+          credentials: "include",
+        });
 
         if (!res.ok) throw new Error("Access denied");
         const data = await res.json();
         setPrescription(data);
         setStatus(data.status);
         setNotes(data.notes || "");
-        if (data.order) setOrder(data.order);
+
+        if (data.order) {
+          fetchOrder(data.order._id); // ✅ fetch order here after prescription loads
+        }
       } catch (err) {
         console.error(err.message);
         navigate("/prescriptions");
@@ -49,6 +50,29 @@ export default function PrescriptionDetail() {
 
     fetchPrescription();
   }, [id, navigate]);
+
+  const fetchOrder = async (orderId) => {
+    try {
+      setIsLoading(true);
+      const orderResponse = await fetch(
+        `${API_BASE}/api/orders/admin/${orderId}`,
+        {
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
+
+      if (!orderResponse.ok) throw new Error("Failed to fetch order");
+
+      const fetchedOrder = await orderResponse.json();
+      setOrder(fetchedOrder);
+      setSelectedStatus(fetchedOrder.status);
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -292,31 +316,91 @@ export default function PrescriptionDetail() {
             </div>
           </div>
 
-          {order && (
-            <div className="bg-white dark:bg-[#161b22] p-4 rounded border dark:border-[#30363d]">
-              <div className="flex justify-between">
-                <h2 className="text-lg font-medium text-gray-800 dark:text-white">
-                  Order
-                </h2>
-                <Link
-                  to={`/orders/${order._id}`}
-                  className="text-blue-600 text-sm"
-                >
-                  View Order
-                </Link>
-              </div>
-              <div className="mt-3">
-                <div className="flex items-center">
-                  <ShoppingBag size={20} className="mr-2 text-blue-600" />
-                  <span className="text-gray-800 dark:text-white">
-                    {order.orderNumber}
-                  </span>
+          {order && order.items ? (
+            <div className="lg:col-span-2">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] shadow-sm">
+                <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+                  <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+                    Order Items
+                  </h2>
+                  <Link
+                to={`/orders/${order._id}`}
+                className="text-blue-600 text-sm"
+              >
+                View order
+              </Link>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {formatDate(order.createdAt)}
-                </p>
+                <div className="divide-y divide-gray-200 dark:divide-gray-700 ">
+                  {order.items.map((item) => (
+                    <div key={item._id} className="p-6 ">
+                      <div className="flex items-center">
+                        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                          {item.product?.image ? (
+                            <img
+                              src={item.product.image}
+                              alt={item.product?.name || "Product"}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-gray-100">
+                              {/* <Package size={24} className="text-gray-400" /> */}
+                              <img
+                                src={item.product.image}
+                                alt={item.product?.name || "Product"}
+                                className="h-full w-full object-cover "
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="ml-4 flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-base font-medium text-gray-900 dark:text-gray-200 ">
+                                {item.product?.name || "Product"}
+                              </h3>
+                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 ">
+                                Quantity: {item.quantity} × ₹
+                                {item.product.discount_price?.toFixed(2) ||
+                                  item.price.toFixed(2)}
+                              </p>
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-300 ">
+                              ₹
+                              {(
+                                item.quantity *
+                                (item.product.discount_price || item.price)
+                              ).toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Order Summary */}
+                  <div className="space-y-2 bg-gray-50 dark:bg-[#161b22]  p-6">
+                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 ">
+                      <p>Subtotal</p>
+                      <p>₹{order.totalAmount.toFixed(2)}</p>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                      <p>Shipping</p>
+                      <p>₹0.00</p>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                      <p>Tax</p>
+                      <p>Included</p>
+                    </div>
+                    <div className="flex justify-between pt-2 text-base font-medium text-gray-900 dark:text-gray-200">
+                      <p>Total</p>
+                      <p>₹{order.totalAmount.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+          ) : (
+            <p>No items</p>
           )}
         </div>
       </div>

@@ -38,7 +38,7 @@ const OrderDetail = () => {
             headers: {
               "Content-Type": "application/json",
             },
-            credentials:"include"
+            credentials: "include",
           }
         );
 
@@ -51,21 +51,8 @@ const OrderDetail = () => {
         setSelectedStatus(fetchedOrder.status);
 
         // If order has prescription, fetch prescription details
-        if (fetchedOrder.prescriptionId) {
-          const prescriptionResponse = await fetch(
-            `${API_BASE}/api/prescriptions/admin/${fetchedOrder.prescriptionId}`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials:"include"
-            }
-          );
-
-          if (prescriptionResponse.ok) {
-            const prescriptionData = await prescriptionResponse.json();
-            setPrescription(prescriptionData);
-          }
+        if (fetchedOrder.prescription) {
+          setPrescription(fetchedOrder.prescription);
         }
 
         setIsLoading(false);
@@ -93,7 +80,7 @@ const OrderDetail = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials:"include",
+          credentials: "include",
           body: JSON.stringify({ status: selectedStatus }),
         }
       );
@@ -263,7 +250,9 @@ const OrderDetail = () => {
               <ShoppingCart size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Status
+              </p>
               <p
                 className={`mt-1 text-sm font-semibold dark:text-green-600 ${
                   getStatusColor(order.status).split(" ")[1]
@@ -279,7 +268,9 @@ const OrderDetail = () => {
               <CreditCard size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Payment</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Payment
+              </p>
               <p className="mt-1 flex items-center text-sm">
                 <span
                   className={`mr-2 rounded-full px-2 py-0.5 text-xs font-medium ${getPaymentColor(
@@ -301,7 +292,9 @@ const OrderDetail = () => {
               <Truck size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Delivery</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Delivery
+              </p>
               <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-400">
                 {order.deliveryDate
                   ? formatDate(order.deliveryDate)
@@ -315,7 +308,9 @@ const OrderDetail = () => {
               <FileText size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Prescription</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Prescription
+              </p>
               {order.prescriptionId ? (
                 <p className="mt-1 flex items-center text-sm">
                   {prescription?.status === "approved" ? (
@@ -356,7 +351,9 @@ const OrderDetail = () => {
         <div className="lg:col-span-2">
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] shadow-sm">
             <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-              <h2 className="text-lg font-medium text-gray-800 dark:text-white">Order Items</h2>
+              <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+                Order Items
+              </h2>
             </div>
             <div className="divide-y divide-gray-200 dark:divide-gray-700 ">
               {order.items.map((item) => (
@@ -393,12 +390,12 @@ const OrderDetail = () => {
                           </p>
                         </div>
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-300 ">
-                                ₹
-                                {(
-                                  item.quantity *
-                                  (item.product.discount_price || item.price)
-                                ).toFixed(2)}
-                              </p>
+                          ₹
+                          {(
+                            item.quantity *
+                            (item.product.discount_price || item.price)
+                          ).toFixed(2)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -434,7 +431,9 @@ const OrderDetail = () => {
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] shadow-sm">
             <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-gray-800 dark:text-white">Customer</h2>
+                <h2 className="text-lg font-medium text-gray-800 dark:text-white">
+                  Customer
+                </h2>
                 <Link
                   to={`/users/${order.user._id}`}
                   className="text-sm font-medium text-blue-600 hover:text-blue-500"
@@ -446,10 +445,11 @@ const OrderDetail = () => {
             <div className="p-6">
               <div className="flex items-center">
                 <div className="mr-4 rounded-full bg-gray-100 object-cover ">
-                  <img src={order.user?.image || '/user.jpg'}
-                   className="w-10 h-10 rounded-full object-cover  "
-                   alt='Photo'>
-                  </img>
+                  <img
+                    src={order.user?.image || "/user.jpg"}
+                    className="w-10 h-10 rounded-full object-cover  "
+                    alt="Photo"
+                  ></img>
                 </div>
                 <div>
                   <h3 className="text-base font-medium text-gray-900 dark:text-gray-300">
@@ -463,19 +463,30 @@ const OrderDetail = () => {
 
               <div className="mt-6">
                 <h4 className="flex items-center text-sm font-medium text-gray-900 dark:text-gray-300">
-                  <MapPin size={16} className="mr-2 text-gray-500 dark:text-gray-300" />
+                  <MapPin
+                    size={16}
+                    className="mr-2 text-gray-500 dark:text-gray-300"
+                  />
                   Shipping Address
                 </h4>
                 <div className="mt-2 rounded-md  p-3 text-sm text-gray-600 dark:border-gray-700 bg-white dark:bg-[#0d1117]">
                   {order.shippingAddress ? (
                     <>
                       <p>
-                        <strong className="dark:text-gray-400">{order.shippingAddress.fullName}</strong>
+                        <strong className="dark:text-gray-400">
+                          {order.shippingAddress.fullName}
+                        </strong>
                       </p>
-                      <p className="dark:text-gray-400">{order.shippingAddress.phoneNumber}</p>
-                      <p className="dark:text-gray-400">{order.shippingAddress.addressLine1}</p>
+                      <p className="dark:text-gray-400">
+                        {order.shippingAddress.phoneNumber}
+                      </p>
+                      <p className="dark:text-gray-400">
+                        {order.shippingAddress.addressLine1}
+                      </p>
                       {order.shippingAddress.addressLine2 && (
-                        <p className="dark:text-gray-400">{order.shippingAddress.addressLine2}</p>
+                        <p className="dark:text-gray-400">
+                          {order.shippingAddress.addressLine2}
+                        </p>
                       )}
                       <p className="dark:text-gray-400">
                         {order.shippingAddress.city},{" "}

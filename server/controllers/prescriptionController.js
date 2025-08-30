@@ -98,7 +98,8 @@ export const getPrescriptionById = async (req, res) => {
     const prescription = await Prescription.findById(req.params.id).populate(
       "user",
       "name email image"
-    );
+    )
+    .populate("order")
     if (!prescription)
       return res.status(404).json({ message: "Prescription not found" });
 

@@ -4,11 +4,13 @@ import { useCartStore } from "../store/cartStore";
 import { AuthContext } from "../authContext";
 import SearchBar from "../components/SearchBar";
 import { toast } from "sonner";
+import { RequestMedicine } from "./RequestMedicine";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openMedicineModal, setOpenMedicineModal] = useState(false);
   const location = useLocation();
   const addToCart = useCartStore((state) => state.addToCart);
   const { isLoggedIn } = useContext(AuthContext);
@@ -82,83 +84,97 @@ export default function Products() {
       .includes(searchQuery.toLowerCase())
   );
 
- return (
-  <div className="container mx-auto py-8 px-4">
-    {/* Header Section */}
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-      <h1 className="text-2xl font-bold">All Products</h1>
-      <div className="w-full md:w-96">
-        <SearchBar
-          value={searchQuery}
-          onChange={(value) => {
-            setSearchQuery(value);
-            window.history.pushState(null, "", `/products?search=${value}`);
-          }}
-        />
+  return (
+    <div className="container mx-auto py-8 px-4">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <h1 className="text-2xl font-bold">All Products</h1>
+        <div className="w-full md:w-96">
+          <SearchBar
+            value={searchQuery}
+            onChange={(value) => {
+              setSearchQuery(value);
+              window.history.pushState(null, "", `/products?search=${value}`);
+            }}
+          />
+        </div>
       </div>
-    </div>
 
-    {/* Product Grid */}
-    {filteredProducts.length === 0 ? (
-      <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">No products found.</p>
-      </div>
-    ) : (
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {filteredProducts.map((product) => (
-          <div
-            key={product._id}
-            className="bg-white rounded-lg shadow-md hover:shadow-lg transition-transform duration-300 transform hover:scale-105 overflow-hidden"
+      {/* Product Grid */}
+      {filteredProducts.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-2xl shadow-sm">
+          <p className="text-gray-600  text-lg mb-6">
+            Can’t find your desired product? <br />
+            Try making a request and we’ll add it for you! 🎉
+          </p>
+          <button
+            onClick={() => setOpenMedicineModal(true)}
+            className="inline-flex items-center px-6 py-3 rounded-xl bg-blue-600 text-white font-medium shadow-md hover:bg-blue-700 transition"
           >
-            <Link to={`/product/${product._id}`}>
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-              />
-            </Link>
+            Request a Product
+          </button>
 
-            <div className="p-4">
+          {/* Modal */}
+          <RequestMedicine
+            open={openMedicineModal}
+            setOpen={setOpenMedicineModal}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <div
+              key={product._id}
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-transform duration-300 transform hover:scale-105 overflow-hidden"
+            >
               <Link to={`/product/${product._id}`}>
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">
-                  {product.name}
-                </h2>
-                <p className="text-sm text-gray-600 mb-2">
-                  {product.manufacturer}
-                </p>
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                />
               </Link>
 
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-green-700 font-bold text-lg">
-                    ₹{product.discount_price}
-                  </span>
-                  <span className="text-gray-500 line-through text-lg">
-                    ₹{product.price}
-                  </span>
-                  {product.discount > 0 && (
-                    <span className="text-sm text-red-500 font-semibold">
-                      {product.discount}% off
+              <div className="p-4">
+                <Link to={`/product/${product._id}`}>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                    {product.name}
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {product.manufacturer}
+                  </p>
+                </Link>
+
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-green-700 font-bold text-lg">
+                      ₹{product.discount_price}
                     </span>
-                  )}
+                    <span className="text-gray-500 line-through text-lg">
+                      ₹{product.price}
+                    </span>
+                    {product.discount > 0 && (
+                      <span className="text-sm text-red-500 font-semibold">
+                        {product.discount}% off
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {product.stock} in stock
+                  </span>
                 </div>
-                <span className="text-sm text-gray-500">
-                  {product.stock} in stock
-                </span>
+
+                <button
+                  onClick={() => handleAddToCart(product)}
+                  className="mt-2 w-full bg-green-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-green-700 transition"
+                >
+                  Add to Cart
+                </button>
               </div>
-
-              <button
-                onClick={() => handleAddToCart(product)}
-                className="mt-2 w-full bg-green-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-green-700 transition"
-              >
-                Add to Cart
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-);
-
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
