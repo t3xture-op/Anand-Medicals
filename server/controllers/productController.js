@@ -77,6 +77,7 @@ export async function createProduct(req, res) {
       subcategory,
       price,
       discount,
+      composition,
       stock,
       manufacturer,
       description,
@@ -89,8 +90,13 @@ export async function createProduct(req, res) {
       imageData = req.file.path || req.file.location || req.file.secure_url || "";
     }
 
-    const discount_price =
-      price && discount ? price - (price * discount) / 100 : price;
+ const finalDiscount = discount !== undefined && discount !== "" ? discount : 13;
+
+const discount_price =
+  price && finalDiscount
+    ? Number((price - (price * finalDiscount) / 100).toFixed(2))
+    : Number(price).toFixed(2);
+
 
     const newProduct = new Product({
       name,
@@ -98,6 +104,7 @@ export async function createProduct(req, res) {
       subcategory,
       price,
       discount,
+      composition,
       discount_price,
       stock,
       manufacturer,
@@ -123,6 +130,7 @@ export async function updateProduct(req, res) {
       description,
       price,
       discount,
+      composition,
       stock,
       category,
       subcategory,
@@ -146,6 +154,7 @@ export async function updateProduct(req, res) {
     product.name = name ?? product.name;
     product.description = description ?? product.description;
     product.price = price ?? product.price;
+    product.composition = composition ?? product.composition;
     product.discount = discount ?? product.discount;
     product.stock = stock ?? product.stock;
     product.category = category ?? product.category;

@@ -12,7 +12,9 @@ const ProductAvailabilityPopup = ({ API_BASE }) => {
       if (res.ok) {
         const data = await res.json();
         // Get the latest unread notification
-        const latest = data.find(n => n.type === "product request" && !n.isRead);
+        const latest = data.find(
+          (n) => n.type === "product request" && !n.isRead
+        );
         if (latest) setNotification(latest);
       }
     };
@@ -22,17 +24,17 @@ const ProductAvailabilityPopup = ({ API_BASE }) => {
     return () => clearInterval(interval);
   }, [API_BASE]);
 
-const handleBuyNow = () => {
-  console.log(notification.targetId)
-  if (notification.targetId) {
-    window.location.href = `/product/${notification.targetId}`;
-    handleClose(); 
-  } else {
-
-    toast.warning("The product is not yet available for purchase. Please check back later.");
-    handleClose(); 
-  }
-};
+  const handleBuyNow = () => {
+    if (notification?.targetId) {
+      window.location.href = `/product/${notification.targetId}`;
+      handleClose();
+    } else {
+      toast.warning(
+        "The product is not yet available for purchase. Please check back later."
+      );
+      handleClose();
+    }
+  };
 
   const handleClose = async () => {
     await fetch(`${API_BASE}/api/user/notifications/${notification._id}/read`, {
@@ -46,23 +48,29 @@ const handleBuyNow = () => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white  p-6 rounded-2xl shadow-lg max-w-md text-center">
+      <div className="bg-white p-6 rounded-2xl shadow-lg max-w-md text-center">
         <h2 className="text-lg font-bold mb-2">{notification.title}</h2>
         <p className="mb-4">{notification.message}</p>
         <div className="flex justify-center gap-4">
-          
+          {/* Always show Close */}
           <button
             onClick={handleClose}
-            className="bg-gray-300  text-black  px-4 py-2 rounded-lg"
+            className="bg-gray-300 text-black px-4 py-2 rounded-lg"
           >
             Close
           </button>
-          <button
-            onClick={handleBuyNow}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
-            Buy Now
-          </button>
+
+          {/* ✅ Show Buy Now only if status is "available" */}
+          {notification.type === "product request" &&
+            notification.targetId &&
+            notification.title.includes("Available") && (
+              <button
+                onClick={handleBuyNow}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+              >
+                Buy Now
+              </button>
+            )}
         </div>
       </div>
     </div>

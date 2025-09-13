@@ -21,6 +21,7 @@ const ProductEdit = () => {
     category: "",
     subcategory: " ",
     price: "",
+    composition:"",
     discount: "",
     stock: "",
     manufacturer: "",
@@ -53,6 +54,7 @@ const ProductEdit = () => {
           discount: productData.discount || "",
           description: productData.description || "",
           manufacturer: productData.manufacturer || "",
+          composition:productData.composition||"",
           stock: productData.stock || "",
           category: productData.category || "",
           subcategory: productData.subcategory || "",
@@ -106,6 +108,7 @@ const ProductEdit = () => {
       form.append("subcategory", formData.subcategory);
       form.append("price", formData.price);
       form.append("discount", formData.discount);
+      form.append("composition", formData.composition);
       form.append("stock", formData.stock);
       form.append("manufacturer", formData.manufacturer);
       form.append("description", formData.description);
@@ -246,6 +249,7 @@ const ProductEdit = () => {
                 ))}
               </select>
             </div>
+          
             <div>
               <label className="form-label dark:text-gray-300">Price (₹)</label>
               <input
@@ -327,6 +331,16 @@ const ProductEdit = () => {
                 </div>
               )}
             </div>
+              <div>
+              <label className="form-label dark:text-gray-300">Composition</label>
+               <textarea
+                name="composition"
+                value={formData.composition}
+                onChange={handleChange}
+                rows="4"
+                className="form-input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              ></textarea>
+            </div>
             <div className="md:col-span-2">
               <label className="form-label dark:text-gray-300">
                 Description
@@ -398,6 +412,9 @@ const ProductEdit = () => {
                 Price: ₹{parseFloat(formData.price || 0).toFixed(2)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
+                Composition: {formData.composition}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Discount: {formData.discount || 0}%
               </p>
               <p className="text-sm font-semibold text-gray-700 dark:text-green-400">
@@ -416,7 +433,7 @@ const ProductEdit = () => {
               )}
               {formData.description && (
                 <p className="text-sm text-gray-600 mt-2 dark:text-gray-300">
-                  {formData.description}
+                  Description:{formData.description}
                 </p>
               )}
             </div>

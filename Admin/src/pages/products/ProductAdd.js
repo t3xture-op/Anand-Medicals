@@ -16,10 +16,11 @@ const ProductAdd = () => {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
-    subcategory: "", // NEW
+    subcategory: "", 
     price: "",
-    discount: "",
+    discount: 13,
     stock: "",
+    composition:"",
     manufacturer: "",
     image: "",
     description: "",
@@ -228,11 +229,11 @@ const ProductAdd = () => {
                 name="discount"
                 value={formData.discount}
                 onChange={handleChange}
-                required
                 min="0"
                 step="0.01"
                 className="form-input dark:bg-[#0d1117]"
-                placeholder="0%"
+                placeholder="13%"
+                defaultValue={13}
               />
             </div>
 
@@ -292,6 +293,21 @@ const ProductAdd = () => {
               </div>
             </div>
 
+              <div>
+              <label htmlFor="composition" className="form-label dark:text-gray-300">
+                Composition
+              </label>
+              <textarea
+                id="composition"
+                name="composition"
+                value={formData.composition}
+                onChange={handleChange}
+                rows="4"
+                className="form-input dark:bg-[#0d1117] dark:border-gray-700 dark:text-gray-100"
+                placeholder="Enter product composition"
+              ></textarea>
+            </div>
+
             <div className="md:col-span-2">
               <label
                 htmlFor="description"
@@ -309,6 +325,8 @@ const ProductAdd = () => {
                 placeholder="Enter product description"
               ></textarea>
             </div>
+
+          
 
 
             <div className="md:col-span-2">
@@ -386,6 +404,16 @@ const ProductAdd = () => {
                     </div>
                   )}
 
+                  {formData.composition && (
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-500 ">
+                        Composition:
+                      </span>
+                      <span className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                        {formData.composition}
+                      </span>
+                    </div>
+                  )}
                   {formData.price && (
                     <div className="flex items-center">
                       <span className="text-sm font-medium text-gray-500 ">
@@ -452,9 +480,12 @@ const ProductAdd = () => {
 
                 {formData.description && (
                   <div className="mt-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {formData.description}
-                    </p>
+                    <span className="text-sm font-medium text-gray-500 ">
+                        Description:
+                      </span>
+                      <span className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                        {formData.description}
+                      </span>
                   </div>
                 )}
               </div>

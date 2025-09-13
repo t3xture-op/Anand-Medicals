@@ -10,9 +10,9 @@ const productReqSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  quantity:{
-    type:Number,
-    default:0
+  quantity: {
+    type: Number,
+    default: 0,
   },
   category: {
     type: String,
@@ -25,10 +25,10 @@ const productReqSchema = new mongoose.Schema({
   },
   request_status: {
     type: String,
-    enum: ["pending", "available", "cancelled"],
+    enum: ["pending", "available", "cancelled", "not available"],
     default: "pending",
   },
-    createdAt: {
+  createdAt: {
     type: Date,
     default: Date.now,
   },

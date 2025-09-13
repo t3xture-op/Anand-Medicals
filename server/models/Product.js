@@ -11,18 +11,20 @@ const productSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+
+  composition:{
+    type:String,
+  },
   
   discount: {
     type:Number,
-
+    default:13
   },
   discount_price: {
     type:Number,
-
   },
   description: {
     type: String,
-    //required: true
   },
   category: {
   type: String,
@@ -36,12 +38,12 @@ const productSchema = new mongoose.Schema({
 },
   stock: {
     type: Number,
-    //required: true,
+    required: true,
     min: 0
   },
   manufacturer: {
     type: String,
-    //required: true
+    required: true
   },
   prescription_status:{
     type:Boolean,

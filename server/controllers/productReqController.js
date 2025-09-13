@@ -91,7 +91,7 @@ export async function changeReqStatus(req, res) {
     reqProduct.request_status = newStatus;
     const updated = await reqProduct.save();
 
-    // ✅ if status is "available", create a notification
+    // ✅ Notifications for specific statuses
     if (newStatus === "available") {
       // check if product exists in store
       const existingProduct = await Product.findOne({ name: reqProduct.name });
@@ -105,7 +105,17 @@ export async function changeReqStatus(req, res) {
         title: "Product Available",
         message: `Your requested product "${reqProduct.name}" is now available in our store.`,
         type: "product request",
-        targetId: targetId || reqProduct._id, // fallback: store request id
+        targetId: targetId || reqProduct._id, // fallback: request id
+        user: reqProduct.user,
+      });
+    } 
+    
+    else if (newStatus === "not available") {
+      await Notification.create({
+        title: "Product Unavailable",
+        message: `Unfortunately, your requested product "${reqProduct.name}" is not available at the moment.`,
+        type: "product request",
+        targetId: reqProduct._id,
         user: reqProduct.user,
       });
     }
@@ -116,6 +126,7 @@ export async function changeReqStatus(req, res) {
     res.status(500).json({ message: "Error updating request status", error: err.message });
   }
 }
+
 
 
 
