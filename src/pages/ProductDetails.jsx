@@ -269,7 +269,7 @@ export default function ProductDetail() {
 
       {/* Recommended Products */}
       {recommendedProducts.length > 0 && (
-        <div className="max-w-6xl mx-auto px-4 mt-12">
+        <div className="max-w-6xl mx-auto px-4 mt-12 mb-12">
           <h2 className="text-2xl font-bold mb-4">You May Also Like</h2>
           <div className="flex space-x-4 overflow-x-auto pb-4">
             {recommendedProducts.map((item) => (
