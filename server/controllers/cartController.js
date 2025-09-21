@@ -40,7 +40,6 @@ export async function addItemToCart(req, res) {
 
     res.status(201).json({ message: "Item added successfully", cart });
   } catch (error) {
-    console.log(error);
     res.status(400).json({
       message: "Cannot add item to cart",
       error: error.message,

@@ -21,6 +21,9 @@ import feedbackRoutes from "./routes/feedback.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import authRoutes from './routes/auth.js'
 import productReqRoutes from './routes/productReq.js'
+import { startOfferScheduler } from "./controllers/offerController.js";
+
+startOfferScheduler();
 
 dotenv.config();
 

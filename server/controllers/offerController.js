@@ -1,6 +1,26 @@
 import Offer from '../models/offers.js';
 import Product from '../models/Product.js'
 import { applyActiveOfferToProduct } from '../utils/applyActiveOfferToProduct.js';
+import cron from "node-cron";
+
+
+//offer checker
+export function startOfferScheduler() {
+  cron.schedule("0 0 * * *", async () => {
+    const now = new Date();
+
+    try {
+      const result = await Offer.updateMany(
+        { status: "active", endDate: { $lt: now } },
+        { $set: { status: "inactive" } }
+      );
+
+      console.log(`[Offer Scheduler] Expired offers updated: ${result.modifiedCount}`);
+    } catch (error) {
+      console.error("[Offer Scheduler] Error updating offers:", error);
+    }
+  });
+}
 
 // Add Offer
 export const addOffer = async (req, res) => {
@@ -68,6 +88,7 @@ export async function getOfferById(req, res) {
 //get Active offers
 export async function getActiveOffer(req, res) {
   try {
+    startOfferScheduler()
     const offers = await Offer.find({ status: "active" }).populate('products');
     if (!offers || offers.length === 0) {
       return res.status(404).json({ message: "No active offers" });

@@ -51,7 +51,6 @@ const auth = async (req, res, next) => {
           return res.status(403).json({ message: 'Session expired. Please log in again.' });
         }
       } else {
-        console.error('Invalid token:', err.message);
         return res.status(403).json({ message: 'Invalid token' });
       }
     }
